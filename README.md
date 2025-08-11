@@ -24,7 +24,7 @@ Make sure you have the following installed:
 ### 1. Clone the Repository
 
 ```bash
-git clone <YOUR_REPOSITORY_URL_HERE>
+git clone https://github.com/yihsuan1102/yihsuan1102-AI-powered-Interactive-Resume-Website.git
 cd resume_website
 ```
 
