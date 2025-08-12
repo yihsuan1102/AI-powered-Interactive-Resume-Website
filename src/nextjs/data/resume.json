@@ -1,0 +1,276 @@
+{
+  "contact": {
+    "first_name": "Yihsuan",
+    "last_name": "Liao",
+    "github": "https://github.com/yihsuan1102",
+    "linkedin": "https://www.linkedin.com/in/yi-hsuan-liao-a120a3168/",
+    "email": "logan.yihsuan.liao@gmail.com"
+  },
+  "education": [
+    {
+      "school": "National Cheng Kung University",
+      "location": "Tainan, Taiwan",
+      "degree": "M.S., Electrical Engineering",
+      "start_month": "Sep.",
+      "start_year": 2020,
+      "end_month": "July",
+      "end_year": 2024,
+      "laboratory": "Database and Software Engineering Laboratory (DBSE)",
+      "advisor": "Prof. Hewijin Christine Jiau",
+      "thesis": "What’s Leading for Programming Skills"
+    },
+    {
+      "school": "National University of Tainan",
+      "location": "Tainan, Taiwan",
+      "degree": "B.S., Computer Science and Information Engineering",
+      "start_month": "Sep.",
+      "start_year": 2016,
+      "end_month": "Jun.",
+      "end_year": 2020
+    }
+  ],
+  "jobs": [
+    {
+      "company": "National Cheng Kung University",
+      "start_month": "Oct.",
+      "start_year": 2020,
+      "end_month": "Jan.",
+      "end_year": 2024,
+      "overview": "Improved student affairs service quality through evaluation and automation of administrative workflows, including startup team data management.",
+      "tasks": [
+        "Maintained and updated the web platform based on evolving requirements, modifying web content and styles.",
+        "Designed and executed SQL queries to extract and process survey responses from 2,300+ participants.",
+        "Developed an information management system for startup teams based on an existing relational database.",
+        "Implemented a Python script to automatically send customized emails to targeted users, reducing manual email processing time by 90%.",
+        "Created technical documentation to record system requirements and design."
+      ],
+      "technologies": [
+        "PHP",
+        "Python",
+        "ASP",
+        "JavaScript",
+        "MSSQL",
+        "CSS",
+        "Apache HTTP Server",
+        "GitLab"
+      ]
+    },
+    {
+      "company": "National Tainan University",
+      "start_month": "Mar.",
+      "start_year": 2020,
+      "end_month": null,
+      "end_year": null,
+      "overview": "A website that presents information about the staff and services of the Visual Impairment Education and Rehabilitation Center.",
+      "tasks": [
+        "Conducted requirement analysis via client meetings to clarify content, accessibility, and structure needs.",
+        "Adapted legacy web content into an accessible interface conforming to established accessibility guidelines.",
+        "Utilized Git for version control to manage source code."
+      ],
+      "technologies": [
+        "HTML",
+        "CSS",
+        "Bootstrap",
+        "GitLab"
+      ]
+    }
+  ],
+  "projects": [
+    {
+      "title": "Full-Stack Software Development",
+      "start_month": "Sept.",
+      "start_year": 2020,
+      "end_month": "Jan.",
+      "end_year": 2021,
+      "overview": "A web application to help college students enhance their programming skills in Java and C.",
+      "tasks": [
+        "Coordinated with an 11-person team using the Agile process.",
+        "Engaged in all stages of the software development lifecycle, including requirements gathering, system design, implementation, testing, and maintenance.",
+        "Designed a relational database using ER diagrams to structure and manage data.",
+        "Implemented CI/CD pipeline with automated testing and deployment, reducing development and integration time.",
+        "Created design documentation to ensure system maintainability and knowledge sharing."
+      ],
+      "technologies": [
+        "Python",
+        "JavaScript",
+        "SQLite",
+        "Django",
+        "Bootstrap",
+        "GitLab",
+        "Bash"
+      ]
+    },
+    {
+      "title": "Thesis: Improving Programming Skills Training from Software Quality Perspective",
+      "start_month": "Jan.",
+      "start_year": 2024,
+      "end_month": "Jul.",
+      "end_year": 2024,
+      "overview": "A research project focused on identifying the programming skills that can be developed through gameplay and proposing effective process to support programmers' skill training.",
+      "tasks": [
+        "Conducted data-driven analysis to identify key learning needs and proposed effective solution.",
+        "Automated data preprocessing to clean and structure raw data efficiently.",
+        "Reused existing tools and third-party libraries to optimize development efficiency.",
+        "Containerized required analysis tools via Docker images and integrated them into the data preprocessing pipeline.",
+        "Contributed to an open-source project by identifying and reporting issues, enabling successful compilation and increasing build reliability for future researchers."
+      ],
+      "technologies": [
+        "Python",
+        "JavaScript",
+        "SQLite",
+        "Docker",
+        "Oclint",
+        "PMD CPD",
+        "Github Copilot",
+        "Django",
+        "Gitlab"
+      ]
+    },
+    {
+      "title": "Integrated Gesture Recognition System with Model Training",
+      "start_month": "Jul.",
+      "start_year": 2019,
+      "end_month": "Jan.",
+      "end_year": 2020,
+      "overview": "A university capstone project that developed an automated vision testing system using pose estimation and gesture recognition to streamline the testing process.",
+      "tasks": [
+        "Designed and implemented an automated visual acuity testing system by integrating an existing pose estimation model with a self-trained LSTM-based gesture recognizer.",
+        "Processed joint coordinate sequences extracted from an existing gesture dataset and trained an LSTM model to classify motion patterns, achieving approximately 70% accuracy.",
+        "Built a automated vision test interface using OpenCV for fixed-distance visual acuity testing with automated result processing."
+      ],
+      "technologies": [
+        "Python",
+        "Bash",
+        "OpenCV",
+        "TensorFlow"
+      ]
+    },
+    {
+      "title": "Lab Service Management Project",
+      "start_month": "Aug.",
+      "start_year": 2024,
+      "end_month": null,
+      "end_year": null,
+      "overview": "A hands-on project designed to simulate real-world scenarios and practice deploying and managing services using container technologies.",
+      "tasks": [
+        "Simulated real-world service deployment by setting up GitLab, Nginx, and Mattermost in a Docker Compose environment with multi-host NFS storage.",
+        "Implemented container orchestration and monitoring with Portainer, gaining hands-on experience in scalable and maintainable infrastructure design.",
+        "Established a multi-host environment using NFS for shared storage, ensuring data consistency across nodes."
+      ],
+      "technologies": [
+        "Linux",
+        "Docker",
+        "Nginx",
+        "Portainer",
+        "Gitlab"
+      ]
+    },
+    {
+      "title": "Data-driven Decision Making in Event Planning",
+      "start_month": "Nov.",
+      "start_year": 2022,
+      "end_month": "May",
+      "end_year": 2024,
+      "overview": "An in-lab event to encourage problem identification, brainstorming, and implementation among lab members.",
+      "tasks": [
+        "Organized an in-lab event with 12 participants to promote creative problem-solving and idea sharing, resulting in 3 most popular proposals developed over summer for future publication.",
+        "Transformed stakeholder needs into actionable event design that fostered creative discussion and collaborative project engagement.",
+        "Measured and analyzed event impact using questionnaire to drive continuous improvement."
+      ],
+      "skills": [
+        "Decision Making",
+        "Problem Solving",
+        "Communication",
+        "Project planning",
+        "Quality management"
+      ]
+    },
+    {
+      "title": "Leadership and Management during Proposal Writing",
+      "start_month": "Oct.",
+      "start_year": 2022,
+      "end_month": "Dec.",
+      "end_year": 2022,
+      "overview": "A technical proposal submitted to the National Science and Technology Council (NSTC), aiming to improve delivery efficiency and user experience through smart logistics solutions.",
+      "tasks": [
+        "Successfully passed the proposal review and approval process.",
+        "Led a team of six members to submit the proposal on time while ensuring alignment with project goals.",
+        "Collaborated with the quality management team to ensure the proposal met required standards.",
+        "Planned the project schedule and monitored project progress by mentoring team members."
+      ],
+      "skills": [
+        "Team Collaboration",
+        "Communication",
+        "Documentation",
+        "Project management",
+        "Quality management"
+      ]
+    }
+  ],
+  "skills": {
+    "Programming Language": [
+      "Python",
+      "C/C++",
+      "Java",
+      "JavaScript",
+      "PHP",
+      "Bash"
+    ],
+    "Machine Learning": [
+      "TensorFlow",
+      "Pandas",
+      "Opencv"
+    ],
+    "Web Development": [
+      "React",
+      "Django",
+      "HTML",
+      "CSS",
+      "Bootstrap",
+      "Apache HTTP Server"
+    ],
+    "Database": [
+      "MySQL",
+      "Microsoft SQL Server",
+      "SQLite"
+    ],
+    "Software Engineering Capabilities": [
+      "Requirements engineering",
+      "Architectural design",
+      "Design and implementation",
+      "Software testing",
+      "Agile software development",
+      "Project management",
+      "Project planning",
+      "Quality management"
+    ],
+    "Tools": [
+      "Git",
+      "GitLab",
+      "Vim",
+      "Pycharm",
+      "YouTrack",
+      "SonarQube",
+      "Oclint",
+      "PMD CPD",
+      "Docker",
+      "Portainer",
+      "Nginx",
+      "VMvare",
+      "VitrualBox",
+      "ChatGPT",
+      "Claude",
+      "Github Copilot"
+    ],
+    "Operating System": [
+      "Windows",
+      "Linux"
+    ],
+    "Language": [
+      "Mandarin",
+      "English"
+    ]
+  }
+}
+
+

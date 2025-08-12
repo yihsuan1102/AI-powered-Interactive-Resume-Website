@@ -1,0 +1,246 @@
+%-------------------------
+% Resume in Latex
+% Author : Sourabh Bajaj
+% Website: https://github.com/sb2nov/resume
+% License : MIT
+%------------------------
+
+\documentclass[letterpaper,11pt]{article}
+
+\usepackage{latexsym}
+\usepackage[empty]{fullpage}
+\usepackage{titlesec}
+\usepackage{marvosym}
+\usepackage[usenames,dvipsnames]{color}
+\usepackage{verbatim}
+\usepackage{enumitem}
+\usepackage{fancyhdr}
+\usepackage[normalem]{ulem}  % 提供 \uline，加 normalem 可避免改變 \emph 行為
+\usepackage{xcolor}          % 若你想加顏色也可以用這個
+\usepackage{fontawesome}    
+\usepackage[pdftex, colorlinks=true, urlcolor=MidnightBlue]{hyperref}
+
+
+
+\pagestyle{fancy}
+\fancyhf{} % clear all header and footer fields
+\fancyfoot{}
+\renewcommand{\headrulewidth}{0pt}
+\renewcommand{\footrulewidth}{0pt}
+
+% Adjust margins
+\addtolength{\oddsidemargin}{-0.375in}
+\addtolength{\evensidemargin}{-0.375in}
+\addtolength{\textwidth}{1in}
+\addtolength{\topmargin}{-.5in}
+\addtolength{\textheight}{1.0in}
+
+\urlstyle{same}
+
+\raggedbottom
+\raggedright
+\setlength{\tabcolsep}{0in}
+
+% Sections formatting
+\titleformat{\section}{
+  \vspace{-4pt}\scshape\raggedright\large
+}{}{0em}{}[\color{black}\titlerule \vspace{-5pt}]
+
+%-------------------------
+% Custom commands
+\newcommand{\resumeItem}[2]{
+  \item\small{
+    \textbf{#1}{: #2 \vspace{-2pt}}
+  }
+}
+
+\newcommand{\resumeSubheading}[4]{
+  \vspace{-1pt}
+    \item {
+      \begin{tabular*}{0.97\textwidth}{l@{\extracolsep{\fill}}r}
+        \textbf{#1} & #2 \\
+      \end{tabular*}
+    }
+    \begin{tabular*}{0.97\textwidth}{l@{\extracolsep{\fill}}r}
+      \textit{\small#3} & \textit{\small #4} \\
+    \end{tabular*}
+  \vspace{-5pt}
+}
+
+
+\newcommand{\jobSubheading}[3]{  
+  \vspace{-1pt}\item
+    \begin{tabular*}{0.97\textwidth}{l@{\extracolsep{\fill}}r}
+      \textbf{#1} & \textit{\small#2} \\  % 第一行：左側是學校/公司，右側是時間範圍（小字斜體）
+    \end{tabular*}
+    \\ \small #3  % 第二行：Job Overview，左對齊
+  \vspace{-5pt}
+}
+\newcommand{\jobSubItem}[1]{  
+  \item \small #1 \vspace{-4pt}
+}
+
+\newcommand{\resumeSubItem}[2]{\resumeItem{#1}{#2}\vspace{-4pt}}
+
+\renewcommand{\labelitemii}{$\circ$}
+
+\newcommand{\resumeSubHeadingListStart}{\begin{itemize}[leftmargin=*]}
+\newcommand{\resumeSubHeadingListEnd}{\end{itemize}}
+\newcommand{\resumeItemListStart}{\begin{itemize}}
+\newcommand{\resumeItemListEnd}{\end{itemize}\vspace{-5pt}}
+\newcommand{\softBlueLink}[2]{\href{#1}{\textcolor{cyan}{#2}}}
+%-------------------------------------------
+%%%%%%  CV STARTS HERE  %%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+\begin{document}
+
+%----------HEADING-----------------
+\begin{tabular*}{\textwidth}{l@{\extracolsep{\fill}}r}
+  \textbf{\Large Yihsuan Liao} & Email : \href{mailto:logan.yihsuan.liao@gmail.com}{logan.yihsuan.liao@gmail.com}\\
+  \faGithub\ \href{https://github.com/yihsuan1102}{Github} \quad \faLinkedin\ \href{https://www.linkedin.com/in/yi-hsuan-liao-a120a3168/}{Linkedin} & Mobile :  \\
+\end{tabular*}
+
+
+%-----------EDUCATION-----------------
+\section{Education}
+  \resumeSubHeadingListStart
+    \resumeSubheading
+      {National Cheng Kung University}{Tainan, Taiwan}
+      {M.S., Electrical Engineering}{Sep. 2020 -- July 2024}
+    \resumeItemListStart
+        \resumeItem{Laboratory}{Database and Software Engineering Laboratory (DBSE)}
+        \resumeItem{Advisor}{Prof. Hewijin Christine Jiau}
+        \resumeItem{Thesis}{What's Leading for Programming Skills}
+    \resumeItemListEnd
+      
+    \resumeSubheading
+      {National University of Tainan}{Tainan, Taiwan}
+      {B.S., Computer Science and Information Engineering}{Sep. 2016 -- Jun. 2020}
+  \resumeSubHeadingListEnd
+
+%-----------Job experience-----------------
+\section{Work Experience }
+  \resumeSubHeadingListStart
+    \jobSubheading
+      {National Cheng Kung University}{Oct. 2020 - Jan. 2024}
+      {Overview: Improved student affairs service quality through evaluation and automation of administrative workflows, including startup team data management.}
+      \resumeItemListStart
+        \jobSubItem{Maintained and updated the web platform based on evolving requirements, modifying web content and styles.}
+        \jobSubItem{Designed and executed SQL queries to extract and process survey responses from 2,300+ participants.}
+        \jobSubItem{Developed an information management system for startup teams based on an existing relational database.}
+        \jobSubItem{Implemented a Python script to automatically send customized emails to targeted users, reducing manual email processing time by 90 \%.}
+        \jobSubItem{Created technical documentation to record system requirements and design.}
+        \jobSubItem{Technologies used: PHP, Python, ASP, JavaScript, MSSQL, CSS, Apache HTTP Server, GitLab.}
+      \resumeItemListEnd
+
+
+\jobSubheading
+        {\href{https://www.nutn.edu.tw/vhc/}{National Tainan University}}{Mar. 2020}
+      {Overview: A website that presents information about the staff and services of the Visual Impairment Education and Rehabilitation Center.}
+      \resumeItemListStart
+        \jobSubItem{Conducted requirement analysis via client meetings to clarify content, accessibility, and structure needs.}
+        \jobSubItem{Adapted legacy web content into an accessible interface conforming to established accessibility guidelines.}
+        \jobSubItem{Utilized Git for version control to manage source code.}
+        \jobSubItem{Technologies used: HTML, CSS, Bootstrap, GitLab.}
+      \resumeItemListEnd
+  \resumeSubHeadingListEnd
+  
+
+%-----------EXPERIENCE-----------------
+\section{Project Experience}
+  \resumeSubHeadingListStart
+
+    \jobSubheading
+       {Full-Stack Software Development}{Sept. 2020 - Jan. 2021}
+      {Overview: A web application to help college students enhance their programming skills in Java and C.}
+      \resumeItemListStart
+        \jobSubItem{Coordinated with an 11-person team using the Agile process.}
+        \jobSubItem{Engaged in all stages of the software development lifecycle, including requirements gathering, system design, implementation, testing, and maintenance.}
+        \jobSubItem{Designed a relational database using ER diagrams to structure and manage data.}
+        \jobSubItem{Implemented CI/CD pipeline with automated testing and deployment, reducing development and integration time.}
+        \jobSubItem{Created design documentation to ensure system maintainability and knowledge sharing.}
+        \jobSubItem{Technologies used: Python, JavaScript, SQLite, Django, Bootstrap, GitLab, Bash.}
+      \resumeItemListEnd
+
+\jobSubheading
+      {Thesis: Improving Programming Skills Training from Software Quality Perspective}{Jan. 2024 - Jul. 2024}
+      {Overview: A research project focused on identifying the programming skills that can be developed through gameplay and proposing effective process to support programmers' skill training.}
+      \resumeItemListStart
+        \jobSubItem{Conducted data-driven analysis to identify key learning needs and proposed effective solution.}
+        \jobSubItem{Automated data preprocessing to clean and structure raw data efficiently.}
+        \jobSubItem{Reused existing tools and third-party libraries to optimize development efficiency.}
+        \jobSubItem{Containerized required analysis tools via Docker images and integrated them into the data preprocessing pipeline.}
+        \jobSubItem{\href{https://github.com/ptidejteam/ptidej-Ptidej/issues?q=is\%3Aissue\%20state\%3Aclosed\%20author\%3Ayihsuan1102}{Contributed to an open-source project} by identifying and reporting issues, enabling successful compilation and increasing build reliability for future researchers.}
+        \jobSubItem{Technologies used: Python, JavaScript, SQLite, Docker, Oclint, PMD CPD, Github Copilot, Django, Gitlab.}
+      \resumeItemListEnd
+      \jobSubheading
+  {Integrated Gesture Recognition System with Model Training}{Jul. 2019 - Jan. 2020}
+  {Overview: A university capstone project that developed an automated vision testing system using pose estimation and gesture recognition to streamline the testing process.}
+  \resumeItemListStart
+    \jobSubItem{Designed and implemented an automated visual acuity testing system by integrating an existing pose estimation model with a self-trained LSTM-based gesture recognizer.}
+    \jobSubItem{Processed joint coordinate sequences extracted from an existing gesture dataset and trained an LSTM model to classify motion patterns, achieving approximately 70\% accuracy.}
+    \jobSubItem{Built a automated vision test interface using OpenCV for fixed-distance visual acuity testing with automated result processing.}
+    \jobSubItem{Technologies used: Python, Bash, OpenCV, TensorFlow.}
+  \resumeItemListEnd
+
+
+\jobSubheading
+      {\href{https://github.com/yihsuan1102/Service-management}{Lab Service Management Project}}{Aug. 2024}
+      {Overview: A hands-on project designed to simulate real-world scenarios and practice deploying and managing services using container technologies.}
+      
+      \resumeItemListStart
+        \jobSubItem{Simulated real-world service deployment by setting up GitLab, Nginx, and Mattermost in a Docker Compose environment with multi-host NFS storage.}
+        \jobSubItem{Implemented container orchestration and monitoring with Portainer, gaining hands-on experience in scalable and maintainable infrastructure design.}
+        \jobSubItem{Established a multi-host environment using NFS for shared storage, ensuring data consistency across nodes.}
+        \jobSubItem{Technologies used: Linux, Docker, Nginx, Portainer, Gitlab.}
+      \resumeItemListEnd
+
+\jobSubheading
+      {Data-driven Decision Making in Event Planning}{Nov. 2022- May 2024}
+      {Overview: An in-lab event to encourage problem identification, brainstorming, and implementation among lab members.}
+      \resumeItemListStart
+        \jobSubItem{Organized an in-lab event with 12 participants to promote creative problem-solving and idea sharing, resulting in 3 most popular proposals developed over summer for future publication.}
+        \jobSubItem{Transformed stakeholder needs into actionable event design that fostered creative discussion and collaborative project engagement.}
+        \jobSubItem{Measured and analyzed event impact using questionnaire to drive continuous improvement.}
+        \jobSubItem{Skills: Decision Making, Problem Solving, Communication, Project planning, Quality management.}
+      \resumeItemListEnd
+
+\jobSubheading
+      {Leadership and Management during Proposal Writing}{Oct. 2022 - Dec. 2022}
+      {Overview: A technical proposal submitted to the National Science and Technology Council (NSTC), aiming to improve delivery efficiency and user experience through smart logistics solutions.}
+      
+      \resumeItemListStart
+        \jobSubItem{\textbf{Successfully passed} the proposal review and approval process.}
+        \jobSubItem{Led a team of six members to submit the proposal on time while ensuring alignment with project goals.}
+        \jobSubItem{Collaborated with the quality management team to ensure the proposal met required standards.}
+        \jobSubItem{Planned the project schedule and monitored project progress by mentoring team members.}
+        \jobSubItem{Skills: Team Collaboration, Communication, Documentation, Project management, Quality management.}
+      \resumeItemListEnd
+
+  \resumeSubHeadingListEnd
+
+%-----------SKILLS-----------------
+\section{Skills}
+  \resumeSubHeadingListStart
+    \resumeSubItem{Programming Language}
+      {Python, C/C++, Java, JavaScript, PHP, Bash}
+      \resumeSubItem{Machine Learning}
+      {TensorFlow, Pandas, Opencv, }
+    \resumeSubItem{Web Development}
+      {React, Django, HTML, CSS, Bootstrap,  Apache HTTP Server}
+    \resumeSubItem{Database}
+      {MySQL, Microsoft SQL Server, SQLite}
+    \resumeSubItem{Software Engineering Capabilities}
+      {Requirements engineering, Architectural design, Design and implementation, Software testing, Agile software development, Project management, Project planning, Quality management}
+    \resumeSubItem{Tools}
+      {Git, GitLab, Vim, Pycharm, YouTrack, SonarQube, Oclint, PMD CPD, Docker, Portainer, Nginx, VMvare, VitrualBox, ChatGPT, Claude, Github Copilot}
+    \resumeSubItem{Operating System}
+      {Windows, Linux}
+    \resumeSubItem{Language}
+      {Mandarin, English}
+  \resumeSubHeadingListEnd
+
+%-------------------------------------------
+
+\end{document}
