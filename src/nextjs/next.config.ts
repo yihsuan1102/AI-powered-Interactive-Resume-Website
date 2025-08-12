@@ -6,6 +6,10 @@ const baseConfig: NextConfig = {
   experimental: {
     mdxRs: true,
   },
+  eslint: {
+    // Skip ESLint during production builds to avoid requiring ESLint dependency
+    ignoreDuringBuilds: true,
+  },
 }
 
 const withMDX = createMDX({})
