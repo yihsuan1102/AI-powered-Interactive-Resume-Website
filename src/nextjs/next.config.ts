@@ -5,10 +5,6 @@ const nextConfig: NextConfig = {
     // Skip ESLint during production builds to avoid requiring ESLint dependency
     ignoreDuringBuilds: true,
   },
-  eslint: {
-    // Skip ESLint during production builds to avoid requiring ESLint dependency
-    ignoreDuringBuilds: true,
-  },
 }
 
 export default nextConfig
