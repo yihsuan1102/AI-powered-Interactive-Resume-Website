@@ -7,14 +7,12 @@
     "start": "next start"
   },
   "dependencies": {
-    "@next/mdx": "15.3.3",
-    "autoprefixer": "^10.4.21",
     "next": "15.3.3",
     "react": "19.1.0",
-    "react-dom": "19.1.0",
-    "sugar-high": "^0.9.3"
+    "react-dom": "19.1.0"
   },
   "devDependencies": {
+    "autoprefixer": "^10.4.21",
     "@tailwindcss/postcss": "^4.1.8",
     "@types/node": "^22.15.29",
     "@types/react": "^19.1.6",

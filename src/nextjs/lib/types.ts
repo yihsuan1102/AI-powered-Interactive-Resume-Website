@@ -13,7 +13,6 @@ export interface Contact {
   github: string;
   linkedin: string;
   email: string;
-  mobile: string;
 }
 
 export interface Education {
