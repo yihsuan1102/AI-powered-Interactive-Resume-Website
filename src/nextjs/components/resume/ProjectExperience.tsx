@@ -21,7 +21,7 @@ export function ProjectExperience({ items }: ProjectExperienceProps) {
       <ul className="space-y-6">
         {items.map((p, idx) => (
           <li key={idx} className="space-y-2">
-            <div className="font-medium">
+            <div className="text-lg font-medium">
               {p.title}
             </div>
             <div className="text-sm text-gray-600 dark:text-gray-400">

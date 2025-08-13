@@ -17,7 +17,7 @@
       "end_year": 2024,
       "laboratory": "Database and Software Engineering Laboratory (DBSE)",
       "advisor": "Prof. Hewijin Christine Jiau",
-      "thesis": "What’s Leading for Programming Skills"
+      "thesis": "What's Leading for Programming Skills"
     },
     {
       "school": "National University of Tainan",
@@ -59,8 +59,8 @@
       "company": "National Tainan University",
       "start_month": "Mar.",
       "start_year": 2020,
-      "end_month": null,
-      "end_year": null,
+      "end_month": "Mar.",
+      "end_year": 2020,
       "overview": "A website that presents information about the staff and services of the Visual Impairment Education and Rehabilitation Center.",
       "tasks": [
         "Conducted requirement analysis via client meetings to clarify content, accessibility, and structure needs.",
@@ -98,6 +98,27 @@
         "Bootstrap",
         "GitLab",
         "Bash"
+      ]
+    },
+    {
+      "title": "AI-powered Interactive Resume Website",
+      "start_month": "Aug.",
+      "start_year": 2025,
+      "end_month": "Present",
+      "overview": "A personal resume website featuring dynamic content display and an interactive AI-powered Q&A chatbot.",
+      "tasks": [
+        "Built a modular architecture separating Next.js frontend and FastAPI backend for maintainability and scalability.",
+        "Designed the data model and API to serve structured resume data and support dynamic rendering.",
+        "Implemented a RAG-based AI Q&A workflow to retrieve resume content and generate accurate answers."
+      ],
+      "technologies": [
+        "React",
+        "Next.js",
+        "TypeScript",
+        "FastAPI",
+        "PostgreSQL",
+        "Redis",
+        "AWS Amplify"
       ]
     },
     {
@@ -144,68 +165,48 @@
         "OpenCV",
         "TensorFlow"
       ]
-    },
-    {
-      "title": "Lab Service Management Project",
-      "start_month": "Aug.",
-      "start_year": 2024,
-      "end_month": null,
-      "end_year": null,
-      "overview": "A hands-on project designed to simulate real-world scenarios and practice deploying and managing services using container technologies.",
-      "tasks": [
-        "Simulated real-world service deployment by setting up GitLab, Nginx, and Mattermost in a Docker Compose environment with multi-host NFS storage.",
-        "Implemented container orchestration and monitoring with Portainer, gaining hands-on experience in scalable and maintainable infrastructure design.",
-        "Established a multi-host environment using NFS for shared storage, ensuring data consistency across nodes."
-      ],
-      "technologies": [
-        "Linux",
-        "Docker",
-        "Nginx",
-        "Portainer",
-        "Gitlab"
-      ]
-    },
-    {
-      "title": "Data-driven Decision Making in Event Planning",
-      "start_month": "Nov.",
-      "start_year": 2022,
-      "end_month": "May",
-      "end_year": 2024,
-      "overview": "An in-lab event to encourage problem identification, brainstorming, and implementation among lab members.",
-      "tasks": [
-        "Organized an in-lab event with 12 participants to promote creative problem-solving and idea sharing, resulting in 3 most popular proposals developed over summer for future publication.",
-        "Transformed stakeholder needs into actionable event design that fostered creative discussion and collaborative project engagement.",
-        "Measured and analyzed event impact using questionnaire to drive continuous improvement."
-      ],
-      "skills": [
-        "Decision Making",
-        "Problem Solving",
-        "Communication",
-        "Project planning",
-        "Quality management"
-      ]
-    },
-    {
-      "title": "Leadership and Management during Proposal Writing",
-      "start_month": "Oct.",
-      "start_year": 2022,
-      "end_month": "Dec.",
-      "end_year": 2022,
-      "overview": "A technical proposal submitted to the National Science and Technology Council (NSTC), aiming to improve delivery efficiency and user experience through smart logistics solutions.",
-      "tasks": [
-        "Successfully passed the proposal review and approval process.",
-        "Led a team of six members to submit the proposal on time while ensuring alignment with project goals.",
-        "Collaborated with the quality management team to ensure the proposal met required standards.",
-        "Planned the project schedule and monitored project progress by mentoring team members."
-      ],
-      "skills": [
-        "Team Collaboration",
-        "Communication",
-        "Documentation",
-        "Project management",
-        "Quality management"
-      ]
-    }
+      },
+      {
+        "title": "Data-driven Decision Making in Event Planning",
+        "start_month": "Nov.",
+        "start_year": 2022,
+        "end_month": "May",
+        "end_year": 2024,
+        "overview": "An in-lab event to encourage problem identification, brainstorming, and implementation among lab members.",
+        "tasks": [
+          "Organized an in-lab event with 12 participants to promote creative problem-solving and idea sharing, resulting in 3 most popular proposals developed over summer for future publication.",
+          "Transformed stakeholder needs into actionable event design that fostered creative discussion and collaborative project engagement.",
+          "Measured and analyzed event impact using questionnaire to drive continuous improvement."
+        ],
+        "skills": [
+          "Decision Making",
+          "Problem Solving",
+          "Communication",
+          "Project planning",
+          "Quality management"
+        ]
+      },
+      {
+        "title": "Leadership and Management during Proposal Writing",
+        "start_month": "Oct.",
+        "start_year": 2022,
+        "end_month": "Dec.",
+        "end_year": 2022,
+        "overview": "A technical proposal submitted to the National Science and Technology Council (NSTC), aiming to improve delivery efficiency and user experience through smart logistics solutions.",
+        "tasks": [
+          "Successfully passed the proposal review and approval process.",
+          "Led a team of six members to submit the proposal on time while ensuring alignment with project goals.",
+          "Collaborated with the quality management team to ensure the proposal met required standards.",
+          "Planned the project schedule and monitored project progress by mentoring team members."
+        ],
+        "skills": [
+          "Team Collaboration",
+          "Communication",
+          "Documentation",
+          "Project management",
+          "Quality management"
+        ]
+      }
   ],
   "skills": {
     "Programming Language": [
@@ -216,20 +217,25 @@
       "PHP",
       "Bash"
     ],
-    "Machine Learning": [
+    "Artificial Intelligence": [
+      "LLM API",
+      "LangChain",
+      "RAG",
       "TensorFlow",
       "Pandas",
       "Opencv"
     ],
     "Web Development": [
+      "FastAPI",
       "React",
+      "Next.js",
       "Django",
-      "HTML",
-      "CSS",
-      "Bootstrap",
+      "AWS Amplify",
       "Apache HTTP Server"
     ],
     "Database": [
+      "PostgreSQL",
+      "Redis",
       "MySQL",
       "Microsoft SQL Server",
       "SQLite"
@@ -254,13 +260,12 @@
       "Oclint",
       "PMD CPD",
       "Docker",
-      "Portainer",
       "Nginx",
       "VMvare",
       "VitrualBox",
       "ChatGPT",
       "Claude",
-      "Github Copilot"
+      "Cursor"
     ],
     "Operating System": [
       "Windows",
@@ -272,5 +277,3 @@
     ]
   }
 }
-
-
