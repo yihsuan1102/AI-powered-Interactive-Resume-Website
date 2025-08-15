@@ -22,8 +22,10 @@ AWSkey.pem
 
 # Editor/Tool specific
 cursor/
+.cursor/
 gemini/
 doc/Yihsuan_resume.pdf
 doc/deploy/amplify-applications-deploy_404.md
 agent/
-
+package-lock.json
+package.json
