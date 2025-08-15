@@ -14,32 +14,12 @@
 
 ## 2. 架構決策：RAG 流程的部署模式
 
-我們有兩種主要的架構模式可以選擇，各有優劣。**建議從模式 A 開始，以求快速驗證與迭代，待 RAG 邏輯複雜化後再考慮演進至模式 B。**
+我們將採用 **前後端職責分離作為正式方案**，並結合 **LangChain**（編排 RAG pipeline）與 **Langfuse**（可觀測性與品質追蹤）。模式 A 僅保留作為備選或早期 PoC。
 
-### 模式 A：Next.js 一體化方案 (建議起步)
 
-在 `app/api/chat/route.ts` 中完成「**檢索 → 組裝 → 生成**」的完整 RAG 流程。
+### 職責分離方案
 
-- **流程**：
-  1. 前端 `ChatWidget` 將使用者問題發送到 `/api/chat`。
-  2. API 收到問題後，將其向量化。
-  3. 使用該向量查詢 Supabase/pgvector，取回最相關的履歷片段 (chunks)。
-  4. 將履歷片段組裝成上下文 (context)，連同原始問題構成一個完整的提示 (prompt)。
-  5. 呼叫 OpenAI API (或其他 LLM) 進行流式生成。
-  6. 將生成的內容以流式 response 回傳給前端。
-
-- **優點**：
-  - **部署單純**：所有邏輯都在 Next.js 專案內，一次部署到位。
-  - **開發快速**：無需管理額外的後端服務與 API 對接。
-  - **低延遲**：可部署在 Edge 環境，減少網路往返。
-
-- **缺點**：
-  - **職責耦合**：資料處理 (RAG) 與 API 邏輯混和，未來若 RAG 流程變複雜 (如混合檢索、重排序) 會讓 `route.ts` 變得臃腫。
-  - **Python 生態系限制**：無法直接使用 Python 生態中強大的資料科學與 LLM 工具鏈 (如 LangChain, LlamaIndex 的進階功能)。
-
-### 模式 B：職責分離方案 (未來擴充方向)
-
-RAG 核心邏輯由 `python-backend` 提供，Next.js API 只做請求轉發與串流生成。
+RAG 核心邏輯由 `python-backend` 提供，Next.js API 只做請求轉發與串流生成。Python 服務使用 **LangChain** 建構檢索鏈（Text Splitter → Embeddings → Vector Store Retriever → Prompt 構建 → LLM 生成／重排序），並以 **Langfuse** 全面記錄檢索與生成過程（延遲、成本、品質評分）。
 
 - **流程**：
   1. 前端 `ChatWidget` 發送問題到 `/api/chat`。
@@ -52,6 +32,7 @@ RAG 核心邏輯由 `python-backend` 提供，Next.js API 只做請求轉發與�
   - **職責清晰**：前端 (Next.js) 與 RAG 後端 (Python) 分離，便於獨立開發、測試與擴展。
   - **生態系完整**：可充分利用 Python 在 RAG/LLM 領域的成熟工具與函式庫。
   - **可複用性**：RAG 服務可被其他應用程式（如 Slack bot, CLI 工具）重複使用。
+  - **可觀測性**：Langfuse 對每一步（檢索、重排序、生成）提供追蹤，利於調參與 A/B 測試。
 
 - **缺點**：
   - **架構複雜度高**：需要維護兩個服務，並處理它們之間的通訊。
@@ -84,53 +65,70 @@ RAG 核心邏輯由 `python-backend` 提供，Next.js API 只做請求轉發與�
 5.  **設定環境變數** (`.env.local`):
     - `OPENAI_API_KEY="sk-..."`
 
-### Phase 2: 整合 RAG 流程 (模式 A)
+### Phase 2: 整合 RAG 流程（模式 B + LangChain + Langfuse）
 
-**目標**：讓 Chatbot 能夠根據履歷內容回答問題。
+**目標**：讓 Chatbot 能夠根據履歷內容回答問題，RAG 核心在 `python-backend`，並具備可觀測性。現階段假設「使用者發問為短句」，且「履歷來源為 `resume.json`，採用按邏輯單元的 chunking 與向量化」。
 
-1.  **資料庫與資料準備 (Ingestion)**:
-    - **資料庫**：設定 Supabase 專案並啟用 `pgvector` 擴充。
-    - **Schema**：建立 `resume_chunks` 資料表。
-      ```sql
-      -- DDL for resume_chunks table
-      create table if not exists resume_chunks (
-        id bigserial primary key,
-        doc_id text not null default 'resume',
-        section text not null, -- e.g., 'jobs', 'projects'
-        idx int not null,      -- original index in the JSON array
-        split int not null default 0,
-        content text not null,
-        metadata jsonb not null default '{}',
-        embedding vector(1536) not null -- For text-embedding-3-small
-      );
+1.  **資料來源與檢索（`resume.json` 向量化）**
+    - **現況假設**：
+      - 使用者問題為短句，不對使用者問題做 chunking；直接向量化後檢索。
+      - 履歷資料來源為 `src/nextjs/data/resume.json`，以「邏輯單元」為粒度做 chunking 與向量化。
+    - **Chunking（按邏輯單元，非句子切分）**：
+      - `contact`：整合為 1 個 chunk。
+      - `education`：每一筆 education 作為 1 個 chunk（必要時補上校名、學位、期間等關鍵欄位）。
+      - `jobs`：每一筆 job 合併 `overview + tasks + technologies` 作為 1 個 chunk；若長度過長再細分為 2 個 chunk（overlap 100–150）。
+      - `projects`：每一筆 project 合併 `overview + tasks + technologies` 作為 1 個 chunk；必要時再細分。
+      - `skills`：以技能類別為單位（如 Programming Language、Tools）各為 1 個 chunk。
+      - 每個 chunk 的 metadata 包含：`section`、`idx`、`split`（預設 0）、關鍵欄位快照（如 `company/title/school/title`）。
+    - **Embedding 與向量庫**：
+      - 模型：OpenAI `text-embedding-3-small`（1536 維）。
+      - 寫入：Supabase + pgvector（表結構見下）。
+    - **檢索方式**：
+      - 以 VectorStore Retriever（cosine 相似度）為主，`where doc_id='resume'`；Top-k 預設 5；可啟用 MMR 去冗。
+      - 特例：聯絡方式等明確欄位可先規則直出，作為檢索結果的補充或校正。
+    - **備註（未來）**：
+      - 若來源切換到 `resume.tex`，流程：LaTeX 結構解析 → 章節抽取 → 正規化 → `RecursiveCharacterTextSplitter`（800–1200/overlap 100–150）→ embedding → 寫入向量庫。
 
-      -- Indexes for performance
-      create index if not exists idx_resume_doc_section on resume_chunks (doc_id, section);
-      create index if not exists idx_resume_embedding on resume_chunks using ivfflat (embedding vector_cosine_ops) with (lists = 100);
-      ```
-    - **Ingestion Script**：撰寫一個獨立的腳本 (Node.js 或 Python)，執行以下操作：
-        a. 讀取 `src/nextjs/data/resume.json`。
-        b. 按照 `AI_Q&A_arch.md` 中的規則進行文本切分 (chunking)。
-        c. 使用 OpenAI `text-embedding-3-small` 模型將每個 chunk 轉換為向量。
-        d. 將 `content`、`metadata` 與 `embedding` 批量寫入 (upsert) 到 Supabase。
+2.  **建立 Python RAG 端點**（`python-backend`）
+    - 新增 `POST /rag/query`：輸入 `question` 或 `messages`（多輪），`top_k`、`filters`、`stream`。
+    - 使用 LangChain：`VectorStoreRetriever`（Supabase/pgvector，cosine）→（可選）MMR 去冗／重排序 → Prompt 組裝 → LLM 生成；對聯絡方式等可加「規則直出」路徑後再合併。
+    - 回傳：
+      - 非串流：`{ answer, citations: [{section, idx, split}] }`
+      - 串流：SSE/Chunked，包含 tokens 與 citations（完成時標記 `done`）。
+    - 以 Langfuse 追蹤整條鏈（retrieval 命中率、latency、cost）。
 
-2.  **升級 API 端點** (`app/api/chat/route.ts`):
-    - **安裝 Supabase 依賴**：`npm install @supabase/supabase-js`
-    - **修改 Handler 邏輯**：
-        a. 接收到使用者問題後，先用 embedding 模型將其向量化。
-        b. 建立 Supabase client，使用 `rpc` 呼叫向量相似度搜尋函式，從 `resume_chunks` 表中檢索 Top-k (k=5) 相關內容。
-        c. **提示詞工程 (Prompt Engineering)**：建構 system prompt，明確指示 LLM：
-           - "You are a professional assistant for this resume. Answer the user's questions based ONLY on the provided context. If the information is not in the context, say you don't know. Include citations like `[section:index]` at the end of relevant sentences."
-        d. 將檢索到的 context 與使用者問題一同傳給 `streamText`。
-    - **來源標註 (Citations)**：在回傳的資料流中，設計一種方式來傳遞來源資訊，或直接讓 LLM 在回答中生成 `[section:index]` 格式的標註。
+3.  **Next.js API 作為代理**（`app/api/chat/route.ts`）
+    - 接收前端請求，向 `python-backend` 的 `/rag/query` 轉發並將串流回傳給前端。
+    - 處理權杖驗證、逾時重試、錯誤訊息正規化。
 
-3.  **升級前端元件** (`ChatWidget.tsx`):
-    - 設計 UI 來解析並美化顯示來源標註 (例如，點擊後可跳轉或顯示詳細內容的 tooltip)。
-    - 處理 RAG 特有的錯誤狀態，例如「無法從履歷中找到相關資訊」。
+4.  **升級前端元件**（`ChatWidget.tsx`）
+    - 解析 SSE/Chunked 串流，顯示 citations；失敗情境友善提示。
+    - UI 上提供 Top-k 調整與「顯示來源」切換。
 
 ---
 
-## 4. 安全性與環境變數
+## 4. API 設計與協定選擇
+
+- **對外（前端 → Next.js）**：
+  - `POST /api/chat`（REST + SSE）：用 REST 請求、SSE 回傳 token 串流；相容 CDN/負載平衡，實作簡單。
+  - 優點：簡單、HTTP 基礎設施友善、容易監控與重試；與瀏覽器相容性佳。
+  - 缺點：單向串流；若需要雙向互動或主動推送，需 WebSocket。
+
+- **對內（Next.js → Python）**：
+  - `POST http://python-backend/rag/query`（REST）。若長期演進到多服務、強型別或雙向串流，可考慮 gRPC。
+  - 串流：SSE 或 HTTP chunked。
+
+- **是否需要 REST？** 在此情境通常會使用「REST + SSE」：
+  - **優點**：
+    - 與現有前後端架構與安全設計（API Gateway、WAF、Cache）高度相容。
+    - 簡單易測（curl/Postman）、可觀測性好（結合 Langfuse/日誌）。
+    - 對聊天串流已足夠，無需建立長連線管理。
+  - **缺點**：
+    - 非雙向；若需即時指令（tool calls 主動推播）或協作式編輯，WebSocket 更合適。
+    - JSON 體積大於二進位協定（gRPC），在高吞吐情境下成本略高。
+  - **常見做法**：Web 端聊天大多採用 REST + SSE；服務間若需求嚴謹型別與效能，會引入 gRPC。
+
+## 5. 安全性與環境變數
 
 - **金鑰管理**：所有密鑰（OpenAI, Supabase）必須儲存在 `.env.local` 中，並確保該檔案已被加入 `.gitignore`。
 - **Supabase 金鑰**：
@@ -140,9 +138,30 @@ RAG 核心邏輯由 `python-backend` 提供，Next.js API 只做請求轉發與�
 
 ---
 
-## 5. 未來擴充
+## 6. 未來擴充
 
 - **過渡到模式 B**：當 RAG 邏輯需要引入混合檢索 (BM25 + Vector)、重排序 (Re-ranking) 或更複雜的 Agentic 行為時，將 RAG 邏輯遷移到 `python-backend`。
 - **對話歷史**：使用 Vercel KV 或 Supabase 儲存對話歷史，實現跨 session 的記憶功能。
 - **使用者回饋**：在 UI 加入「👍 / 👎」按鈕，收集使用者回饋以評估 RAG 品質，並將 bad cases 存入資料庫以供後續微調。
 - **自動 Ingestion**：設定 CI/CD 或 Webhook，當 `resume.json` 更新時，自動觸發 Ingestion 流程。
+
+---
+
+## 7. 對話紀錄儲存策略（Memory）
+
+- **需求假設**：使用者目前僅輸入純文字進行對話。
+- **兩層方案（建議）**：
+  - 速記層（Redis）：以 `session_id` 為 key 儲存最近 N 則訊息（JSON 列表），設定 TTL（例如 24 小時），供即時對話記憶與快速讀寫。
+  - 永久層（Postgres/Supabase）：`chat_sessions`、`chat_messages` 兩張表，保存完整對話轉錄與評分／回饋；利於分析、審計與離線評測。以 RLS 控制權限。
+- **權衡**：Redis 低延遲與簡易過期；DB 便於長期查詢分析。可同時啟用：寫入 DB 作為事後分析，Redis 服務即時對話。
+
+---
+
+## 8. 防止離題／無關提問（Guardrails）
+
+- **語義門檻**：當前檢索（或規則擷取）若無足夠相關內容，回覆「與履歷無關／無足夠資訊」，不進行自由生成。
+- **提示詞約束**：System prompt 明確限制：「僅根據提供的履歷內容回答；若無相關內容，請說不知道並引導使用者聚焦履歷。」
+- **主題白名單**：限定主題於履歷相關（聯絡方式、學歷、工作、專案、技能等）。
+- **最小 citations 要求**：回答中至少包含一則來源標註（section/index），否則回應「無法根據履歷回答」。
+- **速率與長度限制**：限制單次輸入長度與速率，降低濫用與越獄風險。
+- **安全過濾**：使用 OpenAI 安全政策或自建過濾器阻擋敏感不當內容。
