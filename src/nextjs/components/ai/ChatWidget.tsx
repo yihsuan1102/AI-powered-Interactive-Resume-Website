@@ -13,9 +13,10 @@ type AssistantMessage = {
 }
 
 export default function ChatWidget() {
-	const [isOpen, setIsOpen] = useState(false)
+	const [isOpen, setIsOpen] = useState(true)
 	const [input, setInput] = useState('')
 	const [messages, setMessages] = useState<Array<UserMessage | AssistantMessage>>([])
+	const [isThinking, setIsThinking] = useState(false)
 	const scrollRef = useRef<HTMLDivElement>(null)
 	const textareaRef = useRef<HTMLTextAreaElement>(null)
 
@@ -39,20 +40,29 @@ export default function ChatWidget() {
 		const userId = `${Date.now()}-u`
 		setMessages((prev) => [...prev, { id: userId, content }])
 		setInput('')
+		setIsThinking(true)
 
 		try {
 			const res = await fetch('/api/chat', {
 				method: 'POST',
 				headers: { 'content-type': 'application/json' },
-				body: JSON.stringify({ input: content })
+				body: JSON.stringify({ message: content })
 			})
-			if (!res.ok) throw new Error('Request failed')
-			const data = (await res.json()) as { role: 'assistant'; content: string }
+			const data = (await res.json()) as { answer?: string; content?: string; code?: string; message?: string }
+			if (!res.ok) {
+				const assistantId = `${Date.now()}-e`
+				const isQuota = res.status === 429 || data?.code === 'llm_quota_exceeded'
+				setMessages((prev) => [...prev, { id: assistantId, content: isQuota ? 'LLM quota exceeded. Please try again later or check billing.' : (data?.message || 'Sorry, the system is temporarily unavailable.') }])
+				return
+			}
+
 			const assistantId = `${Date.now()}-a`
-			setMessages((prev) => [...prev, { id: assistantId, content: data.content }])
+			setMessages((prev) => [...prev, { id: assistantId, content: data.answer || data.content || '(no content)' }])
 		} catch (e) {
 			const assistantId = `${Date.now()}-e`
-			setMessages((prev) => [...prev, { id: assistantId, content: '抱歉，系統暫時無法回應。' }])
+			setMessages((prev) => [...prev, { id: assistantId, content: 'Sorry, the system is temporarily unavailable.' }])
+		} finally {
+			setIsThinking(false)
 		}
 	}
 
@@ -106,8 +116,7 @@ export default function ChatWidget() {
 								<BotIcon className="h-5 w-5" />
 							</div>
 							<div className="leading-tight">
-								<div className="text-sm font-semibold">AI 助理</div>
-								<div className="text-xs text-zinc-500 dark:text-zinc-400">僅供外觀展示</div>
+								<div className="text-lg font-semibold text-white">ResumeBot</div>
 							</div>
 						</div>
 						<div className="ml-auto">
@@ -126,8 +135,8 @@ export default function ChatWidget() {
 						{messages.length === 0 ? (
 							<div className="grid h-full place-items-center text-center">
 								<div className="space-y-2">
-									<div className="text-sm font-medium text-zinc-700 dark:text-zinc-200">開始聊天</div>
-									<div className="text-xs text-zinc-500 dark:text-zinc-400">非串流 JSON 範例 API 已串接</div>
+									<div className="text-md font-medium text-zinc-700 dark:text-zinc-200">Start chatting</div>
+									<div className="text-sm text-zinc-500 dark:text-zinc-400">Hi 👋 You can ask anything about my education, projects, or skills here.</div>
 								</div>
 							</div>
 						) : (
@@ -144,6 +153,20 @@ export default function ChatWidget() {
 										</li>
 									)
 								})}
+								{isThinking && (
+									<li className="flex justify-start">
+										<div className="max-w-[85%] rounded-2xl bg-zinc-100 px-3 py-2 text-sm text-zinc-900 shadow dark:bg-zinc-800 dark:text-zinc-100">
+											<span className="inline-flex items-center gap-2">
+												<span>Typing</span>
+												<span className="inline-flex items-center" aria-hidden="true">
+													<span className="mx-[2px] h-[6px] w-[6px] rounded-full bg-zinc-500 animate-bounce" style={{ animationDelay: '0ms' }} />
+													<span className="mx-[2px] h-[6px] w-[6px] rounded-full bg-zinc-500 animate-bounce" style={{ animationDelay: '150ms' }} />
+													<span className="mx-[2px] h-[6px] w-[6px] rounded-full bg-zinc-500 animate-bounce" style={{ animationDelay: '300ms' }} />
+												</span>
+											</span>
+										</div>
+									</li>
+								)}
 							</ul>
 						)}
 					</div>
@@ -163,15 +186,15 @@ export default function ChatWidget() {
 								onChange={(e) => setInput(e.target.value)}
 								onKeyDown={handleKeyDown}
 								rows={1}
-								placeholder="輸入訊息（僅文字，Enter 送出，Shift+Enter 換行）"
+								placeholder="Type your message"
 								className="min-h-[44px] max-h-36 w-full resize-none rounded-xl border border-zinc-300 bg-white px-3 py-2 text-sm text-zinc-900 outline-none placeholder:text-zinc-400 focus:border-accent dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-100"
 							/>
 							<button
 								type="submit"
 								className="inline-flex h-10 shrink-0 items-center justify-center rounded-xl bg-accent px-3 text-sm font-medium text-white shadow hover:brightness-110 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-accent disabled:opacity-50"
-								disabled={!input.trim()}
+								disabled={!input.trim() || isThinking}
 							>
-								送出
+								Send
 							</button>
 						</form>
 					</div>
