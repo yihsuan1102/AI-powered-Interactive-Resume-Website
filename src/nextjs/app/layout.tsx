@@ -3,6 +3,7 @@ import type { Metadata } from 'next';
 import { Inter } from 'next/font/google';
 import resume from '../data/resume.json';
 import type { Resume } from '../types/resume';
+import ChatWidget from '../components/ai/ChatWidget';
 
 const data = resume as Resume;
 
@@ -51,6 +52,8 @@ export default function RootLayout({
           </main>
           <Footer />
         </div>
+        {/* Chat Widget - client-only */}
+        <ChatWidget />
       </body>
     </html>
   );
@@ -84,4 +87,6 @@ function Footer() {
     </footer>
   );
 }
+
+// end
 
