@@ -10,6 +10,7 @@ from supabase import create_client, Client
 
 from rag import rag_pipeline
 from openai import RateLimitError
+from mangum import Mangum
 
 # Load environment variables from local .env
 backend_env = Path(__file__).with_name('.env')
@@ -31,6 +32,11 @@ app = FastAPI()
 origins = [
     "http://localhost:3000",
 ]
+
+# Allow additional origins from env (comma-separated)
+allowed_origins_env = os.environ.get("ALLOWED_ORIGINS")
+if allowed_origins_env:
+    origins.extend([o.strip() for o in allowed_origins_env.split(",") if o.strip()])
 
 app.add_middleware(
     CORSMiddleware,
@@ -108,3 +114,6 @@ def get_resume():
         print(f"An error occurred: {e}")
         raise HTTPException(status_code=500, detail="An internal server error occurred.")
 
+
+# AWS Lambda handler via Mangum
+handler = Mangum(app)
