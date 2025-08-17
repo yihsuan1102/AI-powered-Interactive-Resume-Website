@@ -1,6 +1,8 @@
 # Resume Website with AI Q&A
 
-A personal resume website featuring dynamic content display and an interactive AI-powered Q&A chatbot. The site is built with Next.js for the frontend and a FastAPI backend, leveraging Supabase for data storage and AI capabilities.
+## Introduction
+
+A website that showcases my personal experience and technical skills.
 
 ## Features
 
@@ -8,6 +10,36 @@ A personal resume website featuring dynamic content display and an interactive A
 *   **Interactive AI Q&A**: Allows users to ask questions about the resume content, powered by a RAG (Retrieval-Augmented Generation) system.
 *   **Supabase Integration**: Utilizes Supabase as the primary database for storing structured resume data.
 *   **Modular Architecture**: Separates frontend (Next.js) and backend (FastAPI) for maintainability and scalability.
+
+## Project Architecture
+
+-   Frontend (`src/nextjs`): Next.js App Router, Tailwind CSS. Provides resume pages and the `ChatWidget` chat interface.
+-   Backend (`src/python-backend`): FastAPI exposes `/rag/query` and optional `/api/resume`.
+    -   `rag.py`: RAG pipeline (OpenAI Embeddings + in-memory retrieval + Chat Completions).
+    -   `main.py`: FastAPI app, CORS, optional Supabase resume API, AWS Lambda handler (Mangum).
+-   Data and Types:
+    -   Resume data: `src/nextjs/data/resume.json` (default source for RAG)
+    -   Type definitions: `src/nextjs/types/`, `src/nextjs/lib/types.ts`
+-   Docs and Deployment: `doc/` (design and AWS Amplify deployment notes), `Dockerfile`
+
+```text
+resume_website/
+  ├─ src/
+  │  ├─ nextjs/            # Frontend Next.js + Tailwind
+  │  └─ python-backend/    # Backend FastAPI + RAG
+  └─ doc/                  # Docs: design, deployment, data model
+```
+
+## Tech Stack
+
+-   **Languages**: TypeScript, Python
+-   **Frontend**: Next.js (App Router), React, Tailwind CSS
+-   **Backend**: FastAPI, Uvicorn, Mangum (AWS Lambda)
+-   **AI/LLM**: OpenAI API (Chat Completions, Embeddings)
+-   **Database**: Supabase (Postgres, optional, used by the resume API)
+-   **Retrieval/Vector**: OpenAI Embeddings + in-memory retrieval (no external vector DB yet)
+-   **Tooling**: Node.js, npm / Yarn, Python, pip
+-   **Cloud/Deploy**: AWS Amplify (see `doc/deploy/`), Docker
 
 ## Detailed Setup and Installation
 
@@ -28,21 +60,21 @@ git clone https://github.com/yihsuan1102/yihsuan1102-AI-powered-Interactive-Resu
 cd resume_website
 ```
 
-### 2. Supabase Setup
+### 2. (Optional) Supabase Setup
 
 1.  **Create a New Project**: Go to [Supabase](https://supabase.com/) and create a new project.
-2.  **Create `resume` Table**: In your Supabase project dashboard, navigate to the "Table Editor" and create a new table named `resume`. Define its columns as per `doc/Data_model.md`:
+2.  **Create `resume` Table**: In Supabase Table Editor, create a `resume` table. Columns reference `doc/design/Data_model.md`:
     *   `id` (UUID, Primary Key)
     *   `about_me` (TEXT)
     *   `contact` (JSONB)
     *   `education` (JSONB)
-    *   `jobs` (JSONB) - *Note: The database column is `jabs` as per `Data_model.md`, but the API expects `jobs`.*
+    *   `jobs` (JSONB)
     *   `projects` (JSONB)
     *   `skills` (JSONB)
     *   `created_at` (TIMESTAMPTZ)
     *   `updated_at` (TIMESTAMPTZ)
-3.  **Insert Resume Data**: Insert at least one row of your resume data into the `resume` table. Ensure the data structure matches the column types (especially JSONB fields).
-4.  **Configure Row Level Security (RLS)**: By default, RLS is enabled and prevents API access. To allow your application to read data, go to the "SQL Editor" in your Supabase dashboard and run the following SQL query:
+3.  **Insert Resume Data**: Insert at least one row of resume data (ensure JSONB columns are valid).
+4.  **Row Level Security (RLS)**: Enabled by default. To allow public read access, run in SQL Editor:
 
     ```sql
     ALTER TABLE public.resume ENABLE ROW LEVEL SECURITY;
@@ -51,25 +83,36 @@ cd resume_website
     FOR SELECT 
     USING (true);
     ```
-5.  **Get Supabase Credentials**: Go to "Project Settings" -> "API" to find your `Project URL` and `anon public` key. You will need these for the backend setup.
+5.  **Get Supabase Credentials**: In Project Settings -> API, obtain `Project URL` and `anon public` key.
 
 ### 3. Backend Setup (FastAPI)
 
-1.  **Navigate to Backend Directory**:
+1.  **Navigate to Backend Directory**：
     ```bash
-    cd D:\project\resume_website\python-backend
+    cd src/python-backend
     ```
-2.  **Create `.env` File**: Create a file named `.env` in this directory with the following content:
-    ```
+2.  **Create `.env` File**: Create `.env` and fill the required environment variables (optional as needed):
+    ```env
+    # OpenAI and model
+    OPENAI_API_KEY=YOUR_OPENAI_API_KEY
+    OPENAI_MODEL=gpt-5-nano                 # optional; defaults to gpt-5-nano
+
+    # RAG and frontend CORS
+    ALLOWED_ORIGINS=http://localhost:3000   # comma-separated list
+    RAG_API_KEY=YOUR_RAG_API_KEY            # optional; if set, clients must send X-API-Key header
+
+    # Resume data source (defaults to src/nextjs/data/resume.json)
+    RESUME_JSON_PATH=../nextjs/data/resume.json
+
+    # Supabase (optional; used by /api/resume)
     SUPABASE_URL=YOUR_SUPABASE_URL
     SUPABASE_KEY=YOUR_SUPABASE_KEY
     ```
-    Replace `YOUR_SUPABASE_URL` and `YOUR_SUPABASE_KEY` with the credentials you obtained from Supabase.
-3.  **Install Dependencies**:
+3.  **Install Dependencies**：
     ```bash
     pip install -r requirements.txt
     ```
-4.  **Run the Backend Server**:
+4.  **Run the Backend Server**：
     ```bash
     uvicorn main:app --reload
     ```
@@ -77,15 +120,15 @@ cd resume_website
 
 ### 4. Frontend Setup (Next.js)
 
-1.  **Navigate to Frontend Directory**:
+1.  **Navigate to Frontend Directory**：
     ```bash
-    cd D:\project\resume_website\src\nextjs
+    cd src/nextjs
     ```
-2.  **Install Dependencies**:
+2.  **Install Dependencies**：
     ```bash
     npm install # or yarn install
     ```
-3.  **Run the Development Server**:
+3.  **Run the Development Server**：
     ```bash
     npm run dev # or yarn dev
     ```
