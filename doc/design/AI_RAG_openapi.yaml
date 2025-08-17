@@ -1,0 +1,367 @@
+openapi: 3.0.3
+info:
+  title: 履歷問答 API
+  version: 0.1.0
+  description: |
+    依據設計文件（AI_RAG_design.md, AI_RAG_roadmap.md）制定之 API 介面規格。
+
+    - 部署：Next.js（Amplify Hosting）提供 `/api/chat` 作為前端統一入口；Python（Lambda + API Gateway）提供 `/rag/query` 作為 RAG 查詢與（預設）後端生成端。
+    - 回傳僅支援非串流 JSON。
+    - citations 標準格式：`[{ section, idx, split? }]`；section ∈ { contact, education, jobs, projects, skills }。
+servers:
+  - url: https://{frontendHost}/api
+    description: 前端（Amplify / Next.js Route Handlers）
+    variables:
+      frontendHost:
+        default: app.yihsuanliao.com
+  - url: https://{apiId}.execute-api.{region}.amazonaws.com/{stage}
+    description: 後端（API Gateway + Lambda / Python）
+    variables:
+      apiId:
+        default: example1234
+      region:
+        default: us-east-1
+      stage:
+        default: prod
+tags:
+  - name: Chat
+    description: Next.js 代理端點（可直接生成或轉發到後端）
+  - name: RAG
+    description: Python 後端 RAG 查詢與生成
+paths:
+  /chat:
+    post:
+      tags: [Chat]
+      summary: 送出對話請求（統一入口）。回傳非串流 JSON。
+      description: |
+        現階段預設行為：代理呼叫後端 `/rag/query` 並一次性回傳 JSON。
+
+        可透過環境變數切換：
+        - `GENERATION_IN_BACKEND`: false|true（預設 false；若 true，Next.js 僅代理後端生成結果）
+      operationId: postChat
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ChatRequest'
+            examples:
+              basic:
+                summary: 最簡請求
+                value:
+                  message: "請以重點條列介紹你的 Kubernetes 經驗"
+              advanced:
+                summary: 進階參數
+                value:
+                  message: "你在資料平台上的雲端成本最佳化有哪些實作？"
+                  audience: "eng"
+                  top_k: 8
+                  match_threshold: 0.0
+                  doc_id: "resume:2025-01:zh"
+      responses:
+        '200':
+          description: 成功
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ChatResponse'
+              examples:
+                ok:
+                  value:
+                    answer: "具備 K8s 部署與監控經驗..."
+                    bullets: ["建置 GitOps 部署流程", "以 HPA 與 VPA 自動伸縮"]
+                    citations:
+                      - { section: jobs, idx: 0 }
+                      - { section: projects, idx: 2 }
+                    follow_up: ["需要更詳細的叢集規模嗎？"]
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '429':
+          $ref: '#/components/responses/RateLimited'
+        '500':
+          $ref: '#/components/responses/InternalError'
+
+  /rag/query:
+    post:
+      tags: [RAG]
+      summary: RAG 查詢與（預設）後端生成
+      description: |
+        流程：向量檢索（Supabase RPC `match_resume_chunks`）→ 組裝提示 → 呼叫 OpenAI → 回傳一次性 JSON。
+
+        - 聯絡/教育等可走規則直出並與向量結果合併。
+        - 以 `include_context=true` 可回傳用到的 contexts（除非為隱私考量可關閉）。
+      operationId: postRagQuery
+      security:
+        - ApiKeyAuth: []
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RAGQueryRequest'
+            examples:
+              basic:
+                value:
+                  question: "請條列你的資料工程專案亮點"
+              full:
+                value:
+                  question: "S3 與 Redshift 成本優化的作法有哪些？"
+                  audience: "eng"
+                  top_k: 8
+                  match_threshold: 0.0
+                  doc_id: "resume:2025-01:zh"
+                  include_context: true
+                  generation_in_backend: true
+      responses:
+        '200':
+          description: 成功
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RAGQueryResponse'
+              examples:
+                ok:
+                  value:
+                    answer: "主要從儲存分層、壓縮與併檔、查詢調優三面向..."
+                    bullets:
+                      - "以 lifecycle 移轉 infrequent access 降低 S3 成本"
+                      - "Redshift WLM 與排序鍵/分佈鍵調整"
+                    citations:
+                      - { section: projects, idx: 1 }
+                    contexts:
+                      - section: projects
+                        idx: 1
+                        split: 0
+                        chunk_id: "projects:1:0"
+                        content: "在資料平台...（截斷）"
+                        metadata:
+                          company: "ACME"
+                    model: "gpt-4o-mini"
+                    usage:
+                      prompt_tokens: 800
+                      completion_tokens: 200
+                      total_tokens: 1000
+                      latency_ms: 1200
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '429':
+          $ref: '#/components/responses/RateLimited'
+        '500':
+          $ref: '#/components/responses/InternalError'
+
+components:
+  securitySchemes:
+    ApiKeyAuth:
+      type: apiKey
+      in: header
+      name: x-api-key
+      description: 後端（API Gateway）建議以 x-api-key 或 IAM/自管機制保護；本規格提供 x-api-key 範例。
+    BearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+      description: 可選的 Bearer 憑證（若後端採用）。
+
+  responses:
+    BadRequest:
+      description: 請求錯誤
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+          examples:
+            bad:
+              value:
+                code: bad_request
+                message: 缺少必要欄位 question/message
+    Unauthorized:
+      description: 未授權
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+          examples:
+            unauth:
+              value:
+                code: unauthorized
+                message: 無效或缺少 API 金鑰
+    RateLimited:
+      description: 流量限制
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+          examples:
+            rl:
+              value:
+                code: rate_limited
+                message: 請稍後重試
+    InternalError:
+      description: 伺服器錯誤
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+          examples:
+            err:
+              value:
+                code: internal_error
+                message: 伺服器錯誤，請稍後重試
+
+  schemas:
+    Audience:
+      type: string
+      description: 回答面向（微調語氣與重點）
+      enum: [hr, eng]
+
+    Citation:
+      type: object
+      properties:
+        section:
+          type: string
+          enum: [contact, education, jobs, projects, skills]
+        idx:
+          type: integer
+          minimum: 0
+        split:
+          type: integer
+          minimum: 0
+          nullable: true
+        chunk_id:
+          type: string
+          nullable: true
+        similarity:
+          type: number
+          format: float
+          nullable: true
+      required: [section, idx]
+
+    ContextChunk:
+      type: object
+      properties:
+        chunk_id:
+          type: string
+        section:
+          type: string
+          enum: [contact, education, jobs, projects, skills]
+        idx:
+          type: integer
+          minimum: 0
+        split:
+          type: integer
+          minimum: 0
+        content:
+          type: string
+        metadata:
+          type: object
+          additionalProperties: true
+      required: [chunk_id, section, idx, split, content]
+
+    RAGQueryRequest:
+      type: object
+      properties:
+        question:
+          type: string
+          description: 使用者問題（短句）
+        audience:
+          $ref: '#/components/schemas/Audience'
+        top_k:
+          type: integer
+          default: 8
+          minimum: 1
+          maximum: 20
+        match_threshold:
+          type: number
+          format: float
+          default: 0.0
+          description: 相似度閾值（cosine 相似度，建議 0.0–1.0 之間）
+        doc_id:
+          type: string
+          description: 過濾特定履歷版本（如 `resume:2025-01:zh`）
+        include_context:
+          type: boolean
+          default: false
+        generation_in_backend:
+          type: boolean
+          default: true
+      required: [question]
+
+    RAGQueryResponse:
+      type: object
+      properties:
+        answer:
+          type: string
+        bullets:
+          type: array
+          items:
+            type: string
+        citations:
+          type: array
+          items:
+            $ref: '#/components/schemas/Citation'
+        follow_up:
+          type: array
+          items:
+            type: string
+        contexts:
+          type: array
+          items:
+            $ref: '#/components/schemas/ContextChunk'
+        model:
+          type: string
+        usage:
+          type: object
+          properties:
+            prompt_tokens:
+              type: integer
+            completion_tokens:
+              type: integer
+            total_tokens:
+              type: integer
+            latency_ms:
+              type: integer
+      required: [answer, bullets, citations]
+
+    ChatRequest:
+      type: object
+      description: Next.js 統一入口的請求結構（預設代理後端 `/rag/query`）。
+      properties:
+        message:
+          type: string
+          description: 使用者訊息（單輪）
+        audience:
+          $ref: '#/components/schemas/Audience'
+        top_k:
+          type: integer
+          default: 8
+        match_threshold:
+          type: number
+          format: float
+          default: 0.0
+        doc_id:
+          type: string
+      required: [message]
+
+    ChatResponse:
+      allOf:
+        - $ref: '#/components/schemas/RAGQueryResponse'
+
+    ErrorResponse:
+      type: object
+      properties:
+        code:
+          type: string
+          enum: [bad_request, unauthorized, rate_limited, internal_error]
+        message:
+          type: string
+        details:
+          type: object
+          additionalProperties: true
+        request_id:
+          type: string
+      required: [code, message]
+
+

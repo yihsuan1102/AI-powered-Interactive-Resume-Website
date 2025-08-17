@@ -1,1 +1,35 @@
-{}
+{
+  "name": "resume_website",
+  "version": "1.0.0",
+  "description": "A personal resume website featuring dynamic content display and an interactive AI-powered Q&A chatbot. The site is built with Next.js for the frontend and a FastAPI backend, leveraging Supabase for data storage and AI capabilities.",
+  "main": "index.js",
+  "directories": {
+    "doc": "doc"
+  },
+  "scripts": {
+    "dev": "npm run dev --prefix src/nextjs",
+    "build": "npm run build --prefix src/nextjs",
+    "start": "npm run start --prefix src/nextjs",
+    "dev:backend": "uvicorn main:app --app-dir src/python-backend --host 0.0.0.0 --port 8000",
+    "dev:frontend": "npm run dev --prefix src/nextjs",
+    "dev:all": "concurrently \"npm:dev:backend\" \"npm:dev:frontend\"",
+    "ingest": "python src/python-backend/ingest_resume.py",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/yihsuan1102/AI-powered-Interactive-Resume-Website.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/yihsuan1102/AI-powered-Interactive-Resume-Website/issues"
+  },
+  "homepage": "https://github.com/yihsuan1102/AI-powered-Interactive-Resume-Website#readme",
+  "dependencies": {
+    "@modelcontextprotocol/server-github": "^2025.4.8",
+    "concurrently": "^8.2.2"
+  },
+  "devDependencies": {}
+}
