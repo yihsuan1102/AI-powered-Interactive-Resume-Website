@@ -54,25 +54,6 @@
         "Apache HTTP Server",
         "GitLab"
       ]
-    },
-    {
-      "company": "National Tainan University",
-      "start_month": "Mar.",
-      "start_year": 2020,
-      "end_month": "Mar.",
-      "end_year": 2020,
-      "overview": "A website that presents information about the staff and services of the Visual Impairment Education and Rehabilitation Center.",
-      "tasks": [
-        "Conducted requirement analysis via client meetings to clarify content, accessibility, and structure needs.",
-        "Adapted legacy web content into an accessible interface conforming to established accessibility guidelines.",
-        "Utilized Git for version control to manage source code."
-      ],
-      "technologies": [
-        "HTML",
-        "CSS",
-        "Bootstrap",
-        "GitLab"
-      ]
     }
   ],
   "projects": [
@@ -81,22 +62,26 @@
       "start_month": "Aug.",
       "start_year": 2025,
       "end_month": "Present",
-      "end_year": null,
-      "overview": "Overview: A personal resume website featuring dynamic content display and an interactive AI-powered Q&A chatbot.",
+      "end_year": "present",
+      "overview": "A personal resume website featuring dynamic content display and an interactive AI-powered Q&A chatbot.",
       "tasks": [
+        "Developed an automated data pipeline to vectorize and store data, achieving 90% reduction in manual effort.",
+        "Built a RAG-based AI Q&A workflow to generate accurate answers.",
         "Implemented a RAG-based AI Q&A workflow to generate accurate answers.",
         "Integrated LLM APIs into the resume interface to enhance interactive user experience.",
-        "Designed, developed, and tested APIs to ensure reliable communication between frontend and backend services.",
-        "Reduced AWS hosting costs by 50% through serverless architecture design and optimized resource utilization.",
-        "Technologies used: React, Next.js, TypeScript, FastAPI, PostgreSQL, Redis, AWS (Lambda, API Gateway, Amplify, ECR)."
+        "Designed, developed, and tested RESTful APIs to ensure reliable communication between frontend and backend services.",
+        "Reduced AWS hosting costs by 50% through serverless architecture design and optimized resource utilization."
       ],
       "technologies": [
         "React",
         "Next.js",
         "TypeScript",
+        "Tailwind CSS",
         "FastAPI",
+        "RESTful API",
         "PostgreSQL",
         "Redis",
+        "Gitlab CI/CD",
         "AWS (Lambda, API Gateway, Amplify, ECR)"
       ]
     },
@@ -170,26 +155,6 @@
       ]
     },
     {
-      "title": "Lab Service Management Project",
-      "start_month": "Aug.",
-      "start_year": 2024,
-      "end_month": null,
-      "end_year": null,
-      "overview": "Overview: A hands-on project designed to simulate real-world scenarios and practice deploying and managing services using container technologies.",
-      "tasks": [
-        "Simulated real-world service deployment by setting up GitLab, Nginx, and Mattermost in a Docker Compose environment with multi-host NFS storage.",
-        "Implemented container orchestration and monitoring with Portainer, gaining hands-on experience in scalable and maintainable infrastructure design.",
-        "Established a multi-host environment using NFS for shared storage, ensuring data consistency across nodes."
-      ],
-      "technologies": [
-        "Linux",
-        "Docker",
-        "Nginx",
-        "Portainer",
-        "Gitlab"
-      ]
-    },
-    {
       "title": "Data-driven Decision Making in Event Planning",
       "start_month": "Nov.",
       "start_year": 2022,
@@ -202,12 +167,12 @@
         "Measured and analyzed event impact using questionnaire to drive continuous improvement."
       ],
       "skills": [
-          "Decision Making",
-          "Problem Solving",
-          "Communication",
-          "Project planning",
-          "Quality management"
-        ]
+        "Decision Making",
+        "Problem Solving",
+        "Communication",
+        "Project planning",
+        "Quality management"
+      ]
     },
     {
       "title": "Leadership and Management during Proposal Writing",
@@ -223,12 +188,12 @@
         "Planned the project schedule and monitored project progress by mentoring team members."
       ],
       "skills": [
-          "Team Collaboration",
-          "Communication",
-          "Documentation",
-          "Project management",
-          "Quality management"
-        ]
+        "Team Collaboration",
+        "Communication",
+        "Documentation",
+        "Project management",
+        "Quality management"
+      ]
     }
   ],
   "skills": {
@@ -250,8 +215,10 @@
     ],
     "Web Development": [
       "FastAPI",
+      "RESTful API",
       "React",
       "Next.js",
+      "Tailwind CSS",
       "Django",
       "AWS (Lambda, API Gateway, Amplify, ECR)",
       "Apache HTTP Server"
