@@ -11,6 +11,56 @@ A website that showcases my personal experience and technical skills.
 *   **Supabase Integration**: Utilizes Supabase as the primary database for storing structured resume data.
 *   **Modular Architecture**: Separates frontend (Next.js) and backend (FastAPI) for maintainability and scalability.
 
+## System Architecture
+
+```mermaid
+graph TB
+    %% User Layer
+    User[👤 User]
+    
+    %% CDN Layer
+    CloudflareCDN[☁️ Cloudflare CDN]
+    
+    %% Frontend Layer
+    subgraph "AWS Amplify"
+        StaticHost[📦 Next.js App Static Hosting]
+    end
+    
+    %% Application Layer
+    subgraph "Next.js Application"
+        NextApp[⚛️ Next.js App]
+        APIRoutes[🔌 API Routes]
+    end
+    
+    %% Lambda Layer
+    subgraph "AWS Lambda"
+        FastAPI[🐍 FastAPI Backend<br/>via mangum]
+        RAGService[🤖 RAG Service]
+    end
+    
+    %% Database Layer
+    subgraph "Supabase"
+        PostgreSQL[(🗄️ PostgreSQL<br/>Resume Database)]
+        pgVector[(🔍 pgvector<br/>Resume Vector Data)]
+    end
+    
+    %% External Services
+    subgraph "External APIs"
+        OpenAI[🧠 OpenAI GPT API]
+    end
+    
+    %% Data Flow Connections
+    User --> CloudflareCDN
+    CloudflareCDN --> StaticHost
+    StaticHost --> NextApp
+    NextApp --> APIRoutes
+    APIRoutes --> FastAPI
+    FastAPI --> RAGService
+    RAGService --> OpenAI
+    RAGService --> pgVector
+    FastAPI --> PostgreSQL
+```
+
 ## Project Architecture
 
 -   Frontend (`src/nextjs`): Next.js App Router, Tailwind CSS. Provides resume pages and the `ChatWidget` chat interface.
@@ -60,30 +110,15 @@ git clone https://github.com/yihsuan1102/yihsuan1102-AI-powered-Interactive-Resu
 cd resume_website
 ```
 
-### 2. (Optional) Supabase Setup
+### 2. Database Setup
 
-1.  **Create a New Project**: Go to [Supabase](https://supabase.com/) and create a new project.
-2.  **Create `resume` Table**: In Supabase Table Editor, create a `resume` table. Columns reference `doc/design/Data_model.md`:
-    *   `id` (UUID, Primary Key)
-    *   `about_me` (TEXT)
-    *   `contact` (JSONB)
-    *   `education` (JSONB)
-    *   `jobs` (JSONB)
-    *   `projects` (JSONB)
-    *   `skills` (JSONB)
-    *   `created_at` (TIMESTAMPTZ)
-    *   `updated_at` (TIMESTAMPTZ)
-3.  **Insert Resume Data**: Insert at least one row of resume data (ensure JSONB columns are valid).
-4.  **Row Level Security (RLS)**: Enabled by default. To allow public read access, run in SQL Editor:
+Please refer to [doc/design/Data_model.md](doc/design/Data_model.md) for complete database setup instructions, including:
+- Database schema and table structures
+- Supabase project creation and configuration  
+- SQL commands for creating tables and indexes
+- Row Level Security (RLS) policies
+- Initial data insertion guidelines
 
-    ```sql
-    ALTER TABLE public.resume ENABLE ROW LEVEL SECURITY;
-    CREATE POLICY "Allow public read access to resume" 
-    ON public.resume 
-    FOR SELECT 
-    USING (true);
-    ```
-5.  **Get Supabase Credentials**: In Project Settings -> API, obtain `Project URL` and `anon public` key.
 
 ### 3. Backend Setup (FastAPI)
 

@@ -65,12 +65,12 @@
       "end_year": "present",
       "overview": "A personal resume website featuring dynamic content display and an interactive AI-powered Q&A chatbot.",
       "tasks": [
-        "Developed an automated data pipeline to vectorize and store data, achieving 90% reduction in manual effort.",
-        "Built a RAG-based AI Q&A workflow to generate accurate answers.",
+        "Built an automated data pipeline to vectorize and store data, achieving 90% reduction in manual effort.",
         "Implemented a RAG-based AI Q&A workflow to generate accurate answers.",
         "Integrated LLM APIs into the resume interface to enhance interactive user experience.",
         "Designed, developed, and tested RESTful APIs to ensure reliable communication between frontend and backend services.",
-        "Reduced AWS hosting costs by 50% through serverless architecture design and optimized resource utilization."
+        "Reduced AWS hosting costs by 50% through serverless architecture design and optimized resource utilization.",
+        "Practical experience in building applications utilizing agent-based AI approaches and techniques."
       ],
       "technologies": [
         "React",
@@ -82,7 +82,11 @@
         "PostgreSQL",
         "Redis",
         "Gitlab CI/CD",
-        "AWS (Lambda, API Gateway, Amplify, ECR)"
+        "AWS (Lambda, API Gateway, Amplify, ECR)",
+        "Cursor",
+        "Claude Code",
+        "Gemini",
+        "GPT-5"
       ]
     },
     {
@@ -226,13 +230,13 @@
     "Database": [
       "PostgreSQL",
       "Redis",
-      "MySQL",
+	  "MySQL",
       "Microsoft SQL Server",
       "SQLite"
     ],
     "Software Engineering Capabilities": [
       "Requirements engineering",
-      "Architectural design",
+	  "Architectural design",
       "Design and implementation",
       "Software testing",
       "Agile software development",
@@ -244,7 +248,7 @@
       "Git",
       "GitLab",
       "Vim",
-      "Pycharm",
+	  "Pycharm",
       "YouTrack",
       "SonarQube",
       "Oclint",

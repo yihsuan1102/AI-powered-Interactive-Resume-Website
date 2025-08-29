@@ -13,72 +13,10 @@
 - **部署模式**：採用「Next.js 代理 + Python 後端」的職責分離方案。
 - **檢索**：Python 直接呼叫 Supabase 的 RPC `match_resume_chunks`，以 `pgvector` 進行 cosine 相似度檢索（Top‑k 5–8、可加 MMR 去冗）。
 - **生成**：預設於 Python 後端使用 OpenAI Chat 完成生成（非串流 JSON 一次回傳）；後續可改由 Next.js 以 SSE 串流或代理後端 SSE。
-- **可觀測性**：可於後續加入 **Langfuse**；本版為最小可行實作，先不耦合。
+- **可觀測性**：可於後續加入 **Langfuse**；本版為最小可行實作。
 - **向量庫**：[Supabase](https://supabase.com/) + `pgvector`；embedding 採 `text-embedding-3-small`（1536 維）。
 
-#### Supabase 設定（SQL，一次性）
 
-```sql
--- 1) pgvector
-create extension if not exists vector;
-
--- 2) 履歷切塊表
-create table if not exists public.resume_chunks (
-  id uuid primary key default gen_random_uuid(),
-  doc_id text not null,
-  chunk_id text not null unique,         -- 穩定鍵：section:idx:split
-  section text not null,                 -- contact / education / jobs / projects / skills
-  idx int not null,
-  split int not null default 0,
-  content text not null,
-  metadata jsonb,
-  embedding vector(1536)
-);
-
--- 3) 索引（ivfflat 建議於首次批量寫入後建立）
-create index if not exists idx_resume_chunks_doc on public.resume_chunks (doc_id);
-create index if not exists idx_resume_chunks_section on public.resume_chunks (section);
--- 建議：資料寫入後再建 ANN 索引以避免空索引
--- create index idx_resume_chunks_embed on public.resume_chunks
---   using ivfflat (embedding vector_cosine_ops) with (lists = 100);
-
--- 4) RPC：向量相似度檢索
-create or replace function public.match_resume_chunks(
-  in query_embedding vector(1536),
-  in match_count int default 8,
-  in match_threshold float default 0.0,
-  in filter_doc_id text default null
-)
-returns table (
-  chunk_id text,
-  section text,
-  idx int,
-  split int,
-  content text,
-  metadata jsonb,
-  similarity float
-)
-language sql stable as $$
-  select
-    rc.chunk_id,
-    rc.section,
-    rc.idx,
-    rc.split,
-    rc.content,
-    rc.metadata,
-    1 - (rc.embedding <=> query_embedding) as similarity
-  from public.resume_chunks rc
-  where (filter_doc_id is null or rc.doc_id = filter_doc_id)
-  order by rc.embedding <=> query_embedding
-  limit match_count
-$$;
-
--- 5) RLS（開發期可先寬鬆；上線前收緊）
-alter table public.resume_chunks enable row level security;
-create policy "read all for server role" on public.resume_chunks for select using (true);
-create policy "write all for server role" on public.resume_chunks for insert with check (true);
-create policy "update all for server role" on public.resume_chunks for update using (true);
-```
 
 #### 部署與環境假設（Amplify Hosting）
 
@@ -108,7 +46,7 @@ create policy "update all for server role" on public.resume_chunks for update us
 
 ---
 
-### 流程總覽（精簡版｜現階段）
+### 流程總覽（現階段）
 
 1. 準備資料：以 `resume.json` 進行「按邏輯單元的 chunking」並向量化，寫入 Supabase/pgvector。
 2. 查詢處理：使用者發問向量化 → 透過 RPC `match_resume_chunks` 以 cosine 取回 Top‑k（5–8），並可套用 MMR 去冗；對聯絡方式等可規則直出。
@@ -141,32 +79,14 @@ create policy "update all for server role" on public.resume_chunks for update us
 
 #### 3) 儲存與索引（Supabase + pgvector）
 
-- 表：`resume_chunks`。
-- Upsert：自然鍵 `doc_id + section + idx + split`；避免重複寫入。
-- 向量索引：`ivfflat` + cosine，相容 ANN；批量寫入後重建統計。
-- 輔助索引：`(doc_id, section)`、常用 metadata GIN/BTREE。
+詳細的資料庫表格結構請參考 [Data_model.md](./Data_model.md)。
 
-資料表結構（欄位與用途）：
-
-| 欄位 | 型別 | 必填 | 說明/用途 |
-| :-- | :-- | :--: | :-- |
-| `id` | `uuid`（PK） | ✓ | 主鍵；系統產生。
-| `doc_id` | `text` | ✓ | 文件識別（例如履歷版本或語言：`resume:2025-01:zh`）。
-| `section` | `text`（或 enum） | ✓ | 資料段落：`contact`、`education`、`jobs`、`projects`、`skills`。
-| `idx` | `int` | ✓ | 該 section 下的條目序號（如第 N 份工作）。
-| `split` | `int` | ✓ | 同一條目的子分段序號（預設 0；長文 chunking 後遞增）。
-| `content` | `text` | ✓ | 文字 chunk 內容（最終用於檢索與回答的上下文）。
-| `metadata` | `jsonb` |  | 結構化中繼資料（例如公司/職稱/時間範圍/技能清單等）；亦可存 `source_path`、`line_range`）。
-| `embedding` | `vector(1536)` | ✓ | 由 `text-embedding-3-small` 產生的向量；以 cosine 相似度檢索。
-| `created_at` | `timestamptz` | ✓ | 建立時間（預設 `now()`）。
-
-
-索引與策略建議：
-
-- `CREATE INDEX ON resume_chunks USING ivfflat (embedding vector_cosine_ops) WITH (lists = 100);`
-- `CREATE UNIQUE INDEX uniq_logical_key ON resume_chunks(doc_id, section, idx, split);`
-- 常查欄位（如 `section`, `idx`）加 BTREE；`metadata` 常用鍵可加 GIN (`jsonb_path_ops`)。
-- 啟用 RLS：僅允許服務角色（後端 ingestion、檢索）讀寫；前端只透過後端服務間接查詢。
+核心配置：
+- 主表：`resume` 存放結構化履歷資料
+- 向量表：`resume_chunks` 存放文本片段及其向量化表示  
+- Upsert 策略：使用 `chunk_id` 作為主鍵避免重複寫入
+- 向量索引：IVFFlat + cosine 相似度，支援高效的語意搜尋
+- 輔助索引：針對 `doc_id` 和 `section` 建立 B-tree 索引
 
 #### 4) 建置與重建（現階段）
 
