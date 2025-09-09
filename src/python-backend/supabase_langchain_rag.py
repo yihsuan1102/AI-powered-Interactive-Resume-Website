@@ -173,9 +173,9 @@ class SupabaseLangChainRAGPipeline:
         )
         
         self.llm = ChatOpenAI(
-            model=os.environ.get("OPENAI_MODEL", "gpt-4"),
+            model=os.environ.get("OPENAI_MODEL", "gpt-5-nano"),
             openai_api_key=os.environ.get("OPENAI_API_KEY"),
-            temperature=0
+            temperature=1
         )
         
         # Initialize Supabase client
