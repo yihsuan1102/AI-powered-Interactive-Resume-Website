@@ -123,9 +123,16 @@ class SupabaseRetriever:
         """Retrieve relevant documents from Supabase"""
         
         # 1. Get query embedding
-        query_embedding = self.embeddings.embed_query(query)
+        print(f"Getting embedding for query: '{query[:50]}...'")
+        try:
+            query_embedding = self.embeddings.embed_query(query)
+            print(f"Successfully generated embedding with {len(query_embedding)} dimensions")
+        except Exception as e:
+            print(f"Error generating embedding: {e}")
+            return []
         
         # 2. Search in Supabase using RPC
+        print(f"Calling Supabase RPC 'match_resume_chunks' with top_k={top_k}, threshold={match_threshold}")
         try:
             response = self.supabase.rpc(
                 'match_resume_chunks',
@@ -137,10 +144,20 @@ class SupabaseRetriever:
                 }
             ).execute()
             
+            print(f"Supabase RPC returned {len(response.data) if response.data else 0} results")
+            
+            if not response.data:
+                print("No data returned from Supabase RPC call")
+                return []
+            
             documents = []
-            for row in response.data:
+            for i, row in enumerate(response.data):
+                similarity = row.get('similarity', 0.0)
+                print(f"Document {i+1}: similarity={similarity:.4f}, section={row.get('section', 'unknown')}")
+                
                 # Skip documents below threshold
-                if row.get('similarity', 0.0) < match_threshold:
+                if similarity < match_threshold:
+                    print(f"  Skipping due to low similarity ({similarity} < {match_threshold})")
                     continue
                     
                 doc = Document(
@@ -150,15 +167,18 @@ class SupabaseRetriever:
                         'section': row['section'],
                         'idx': row['idx'],
                         'split': row['split'],
-                        'similarity': row.get('similarity', 0.0)
+                        'similarity': similarity
                     }
                 )
                 documents.append(doc)
             
+            print(f"Filtered to {len(documents)} documents above threshold")
             return documents
             
         except Exception as e:
-            print(f"Error in Supabase retrieval: {e}")
+            print(f"Error in Supabase retrieval: {type(e).__name__}: {e}")
+            import traceback
+            print(f"Full traceback: {traceback.format_exc()}")
             return []
 
 
@@ -220,6 +240,7 @@ class SupabaseLangChainRAGPipeline:
             callbacks.append(langfuse_handler)
         
         # 1. Retrieve relevant documents
+        print(f"Retrieving documents: top_k={top_k}, threshold={match_threshold}")
         relevant_docs = self.retriever.get_relevant_documents(
             query=question,
             top_k=top_k,
@@ -227,7 +248,10 @@ class SupabaseLangChainRAGPipeline:
             doc_id=doc_id
         )
         
+        print(f"Retrieved {len(relevant_docs)} relevant documents")
+        
         if not relevant_docs:
+            print("No relevant documents found - returning default message")
             return {
                 "answer": "抱歉，我無法在履歷中找到相關資訊來回答您的問題。",
                 "bullets": [],
@@ -260,8 +284,10 @@ class SupabaseLangChainRAGPipeline:
         
         # 3. Generate response using LLM
         try:
+            from langchain.schema import HumanMessage
+            
             response = await self.llm.agenerate(
-                [[{"role": "user", "content": prompt_template}]],
+                [[HumanMessage(content=prompt_template)]],
                 callbacks=callbacks
             )
             answer_text = response.generations[0][0].text

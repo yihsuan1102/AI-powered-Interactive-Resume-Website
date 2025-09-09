@@ -76,12 +76,16 @@ async def post_rag_query(
     request: Request,
     x_api_key: Optional[str] = Header(default=None, convert_underscores=False),
 ):
+    print(f"Received RAG query: question='{payload.question}', top_k={payload.top_k}")
+    
     # Optional API key gate
     expected_api_key = os.environ.get("RAG_API_KEY")
     if expected_api_key and x_api_key != expected_api_key:
+        print("API key validation failed")
         raise HTTPException(status_code=401, detail="Invalid or missing API key")
 
     try:
+        print("Calling RAG pipeline...")
         result = await rag_pipeline(
             question=payload.question.strip(),
             audience=payload.audience,
@@ -90,8 +94,14 @@ async def post_rag_query(
             doc_id=payload.doc_id,
             include_context=payload.include_context,
         )
+        
+        # Log result summary (without full content to avoid log spam)
+        answer_preview = result.get("answer", "")[:100] + "..." if result.get("answer") else "No answer"
+        print(f"RAG pipeline success: answer='{answer_preview}', citations={len(result.get('citations', []))}")
+        
         return result
     except RateLimitError as e:
+        print(f"OpenAI rate limit error: {e}")
         # 將 LLM 配額不足透傳給前端
         raise HTTPException(status_code=429, detail={
             "code": "llm_quota_exceeded",
@@ -100,7 +110,9 @@ async def post_rag_query(
     except HTTPException:
         raise
     except Exception as e:
-        print(f"RAG error: {e}")
+        print(f"RAG error: {type(e).__name__}: {e}")
+        import traceback
+        print(f"Full traceback: {traceback.format_exc()}")
         raise HTTPException(status_code=500, detail="Server error in RAG pipeline")
 
 
