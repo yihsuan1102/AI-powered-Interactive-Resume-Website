@@ -8,6 +8,9 @@ A website that showcases my personal experience and technical skills.
 
 *   **Dynamic Resume Display**: Presents personal, education, work experience, projects, and skills sections.
 *   **Interactive AI Q&A**: Allows users to ask questions about the resume content, powered by a RAG (Retrieval-Augmented Generation) system.
+*   **Dual RAG Implementation**: 
+    - **Supabase + LangChain Mode**: Production-ready with pgvector and LangChain integration (recommended)
+*   **Advanced Observability**: Full integration with Langfuse for tracking LLM costs, latency, and quality metrics
 *   **Supabase Integration**: Utilizes Supabase as the primary database for storing structured resume data.
 *   **Modular Architecture**: Separates frontend (Next.js) and backend (FastAPI) for maintainability and scalability.
 
@@ -85,9 +88,10 @@ resume_website/
 -   **Languages**: TypeScript, Python
 -   **Frontend**: Next.js (App Router), React, Tailwind CSS
 -   **Backend**: FastAPI, Uvicorn, Mangum (AWS Lambda)
--   **AI/LLM**: OpenAI API (Chat Completions, Embeddings)
+-   **AI/LLM**: OpenAI API (Chat Completions, Embeddings), LangChain
 -   **Database**: Supabase (Postgres, optional, used by the resume API)
--   **Retrieval/Vector**: OpenAI Embeddings + in-memory retrieval (no external vector DB yet)
+-   **Vector Storage**: Supabase pgvector 
+-   **Observability**: Langfuse (cost tracking, performance monitoring, quality metrics)
 -   **Tooling**: Node.js, npm / Yarn, Python, pip
 -   **Cloud/Deploy**: AWS Amplify (see `doc/deploy/`), Docker
 
@@ -126,23 +130,12 @@ Please refer to [doc/design/Data_model.md](doc/design/Data_model.md) for complet
     ```bash
     cd src/python-backend
     ```
-2.  **Create `.env` File**: Create `.env` and fill the required environment variables (optional as needed):
-    ```env
-    # OpenAI and model
-    OPENAI_API_KEY=YOUR_OPENAI_API_KEY
-    OPENAI_MODEL=gpt-5-nano                 # optional; defaults to gpt-5-nano
-
-    # RAG and frontend CORS
-    ALLOWED_ORIGINS=http://localhost:3000   # comma-separated list
-    RAG_API_KEY=YOUR_RAG_API_KEY            # optional; if set, clients must send X-API-Key header
-
-    # Resume data source (defaults to src/nextjs/data/resume.json)
-    RESUME_JSON_PATH=../nextjs/data/resume.json
-
-    # Supabase (optional; used by /api/resume)
-    SUPABASE_URL=YOUR_SUPABASE_URL
-    SUPABASE_KEY=YOUR_SUPABASE_KEY
+2.  **Create `.env` File**: Copy the example file and configure:
+    ```bash
+    cp .env.example .env
     ```
+    Fill the required environment variables.
+
 3.  **Install Dependencies**：
     ```bash
     pip install -r requirements.txt
@@ -168,3 +161,40 @@ Please refer to [doc/design/Data_model.md](doc/design/Data_model.md) for complet
     npm run dev # or yarn dev
     ```
     The Next.js frontend will start, typically accessible at `http://localhost:3000`.
+
+### 5. LangChain + Langfuse Integration Setup
+
+This project now supports advanced RAG capabilities with full observability. See [doc/design/LangChain_Langfuse_Setup.md](doc/design/LangChain_Langfuse_Setup.md) for detailed setup instructions.
+
+#### Quick Start:
+
+1. **Set up Langfuse Cloud**:
+   - Visit [Langfuse Cloud](https://cloud.langfuse.com) and create an account
+   - Create a new project for your resume chatbot
+   - Copy your Public Key (`pk_xxx`) and Secret Key (`sk_xxx`)
+
+2. **Configure Environment Variables**:
+   ```bash
+   # In src/python-backend/.env
+   LANGFUSE_PUBLIC_KEY=pk_your-langfuse-public-key
+   LANGFUSE_SECRET_KEY=sk_your-langfuse-secret-key
+   USE_LANGCHAIN_RAG=true  # Enable LangChain mode
+   ```
+
+3. **Test the Integration**:
+   ```bash
+   cd src/python-backend
+   python test_integration.py
+   ```
+
+#### Features:
+- **Cost Tracking**: Monitor OpenAI API costs per query
+- **Performance Monitoring**: Track latency for embeddings and generation
+- **Quality Metrics**: Analyze retrieval effectiveness and answer quality
+- **Usage Analytics**: Understand user query patterns and popular topics
+
+#### RAG Mode Configuration:
+- **Supabase + LangChain** (`USE_LANGCHAIN_RAG=true`): Production-ready using existing pgvector data with LangChain integration
+- **Legacy Mode** (`USE_LANGCHAIN_RAG=false`): Original implementation with Langfuse decorators (fallback)
+
+For detailed Supabase integration setup, see [doc/design/Supabase_LangChain_Integration.md](doc/design/Supabase_LangChain_Integration.md)

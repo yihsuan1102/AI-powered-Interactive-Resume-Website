@@ -7,6 +7,7 @@ from fastapi import FastAPI, HTTPException, Header, Request
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel, Field
 from supabase import create_client, Client
+from langfuse import Langfuse
 
 from rag import rag_pipeline
 from openai import RateLimitError
@@ -25,6 +26,18 @@ SUPABASE_KEY = os.environ.get("SUPABASE_KEY")
 supabase: Optional[Client] = None
 if SUPABASE_URL and SUPABASE_KEY:
     supabase = create_client(SUPABASE_URL, SUPABASE_KEY)
+
+# Langfuse setup for observability
+langfuse_client: Optional[Langfuse] = None
+if all([
+    os.environ.get("LANGFUSE_PUBLIC_KEY"),
+    os.environ.get("LANGFUSE_SECRET_KEY")
+]):
+    langfuse_client = Langfuse(
+        public_key=os.environ.get("LANGFUSE_PUBLIC_KEY"),
+        secret_key=os.environ.get("LANGFUSE_SECRET_KEY"),
+        host=os.environ.get("LANGFUSE_HOST", "https://cloud.langfuse.com")
+    )
 
 app = FastAPI()
 

@@ -5,3 +5,11 @@ python-dotenv
 openai
 numpy
 mangum
+
+# LangChain dependencies
+langchain>=0.1.0
+langchain-openai>=0.1.0
+langchain-community>=0.1.0
+
+# Langfuse for observability
+langfuse>=2.0.0
