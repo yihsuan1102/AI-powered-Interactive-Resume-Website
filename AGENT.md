@@ -144,7 +144,7 @@ When multiple valid approaches exist, choose based on:
 - Disable tests instead of fixing them
 - Commit code that doesn't compile
 - Make assumptions - verify with existing code
-
+- 不要在 code 中使用 emoji
 **ALWAYS**:
 - Commit working code incrementally
 - Update plan documentation as you go

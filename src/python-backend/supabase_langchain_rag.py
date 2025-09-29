@@ -8,6 +8,8 @@ from langchain.chains import RetrievalQA
 from langchain.prompts import PromptTemplate
 from langchain.vectorstores.base import VectorStore
 from langchain.callbacks.base import BaseCallbackHandler
+from langchain_core.prompts import ChatPromptTemplate
+from langchain_core.messages import HumanMessage
 from langfuse.langchain import CallbackHandler as LangfuseCallbackHandler
 from langfuse import Langfuse
 from supabase import create_client, Client
@@ -248,23 +250,8 @@ class SupabaseLangChainRAGPipeline:
     ) -> Dict[str, Any]:
         """Execute RAG query using Supabase + LangChain"""
         
-        # Set up callbacks for Langfuse tracking
-        callbacks = []
-        langfuse_handler = None
-
         print(f"[LANGFUSE] Query start - question: '{question[:50]}...'")
         print(f"[LANGFUSE] Langfuse client status: {'ACTIVE' if self.langfuse else 'INACTIVE'}")
-
-        if self.langfuse:
-            try:
-                langfuse_handler = LangfuseCallbackHandler()
-                callbacks.append(langfuse_handler)
-                print(f"[LANGFUSE] CallbackHandler created successfully")
-                print(f"[LANGFUSE] Callbacks list length: {len(callbacks)}")
-            except Exception as e:
-                print(f"[LANGFUSE] ERROR - Failed to create CallbackHandler: {e}")
-        else:
-            print("[LANGFUSE] Skipping callback setup - Langfuse not initialized")
         
         # 1. Retrieve relevant documents
         print(f"Retrieving documents: top_k={top_k}, threshold={match_threshold}")
@@ -302,16 +289,18 @@ class SupabaseLangChainRAGPipeline:
 
         # Get prompt from Langfuse with fallback to hardcoded version
         prompt_content = None
+        langfuse_prompt = None
+
         if self.langfuse:
             try:
                 print(f"[LANGFUSE] Attempting to load prompt 'resume_formation_query' from Langfuse")
-                prompt = self.langfuse.get_prompt("resume_formation_query", label="production")
-                prompt_content = prompt.compile(
+                langfuse_prompt = self.langfuse.get_prompt("resume_formation_query", label="production")
+                prompt_content = langfuse_prompt.compile(
                     audience_instruction=audience_instruction,
                     context_text=context_text,
                     question=question
                 )
-                print(f"[LANGFUSE] Successfully loaded prompt from Langfuse: {prompt.name} v{prompt.version}")
+                print(f"[LANGFUSE] Successfully loaded prompt from Langfuse: {langfuse_prompt.name} v{langfuse_prompt.version}")
             except Exception as e:
                 print(f"[LANGFUSE] Failed to load prompt from Langfuse: {e}")
                 print(f"[LANGFUSE] Falling back to hardcoded prompt")
@@ -329,19 +318,53 @@ class SupabaseLangChainRAGPipeline:
             print("[LANGFUSE] Using fallback hardcoded prompt")
 
         prompt_template = prompt_content
-        
-        # 3. Generate response using LLM
-        print(f"[LANGFUSE] Starting LLM generation with {len(callbacks)} callbacks")
-        try:
-            from langchain.schema import HumanMessage
 
-            print(f"[LANGFUSE] Calling LLM.agenerate() with callbacks: {[type(cb).__name__ for cb in callbacks]}")
-            response = await self.llm.agenerate(
-                [[HumanMessage(content=prompt_template)]],
-                callbacks=callbacks
-            )
-            answer_text = response.generations[0][0].text
-            print(f"[LANGFUSE] LLM generation completed successfully")
+        # 3. Generate response using LLM with proper prompt linking
+        print(f"[LANGFUSE] Starting LLM generation")
+
+        # Setup callbacks and prompt template for proper linking
+        callbacks = []
+        langfuse_handler = None
+
+        if self.langfuse:
+            try:
+                # Create callback handler (no prompt parameter needed)
+                langfuse_handler = LangfuseCallbackHandler()
+                callbacks.append(langfuse_handler)
+                print(f"[LANGFUSE] Created CallbackHandler")
+                print(f"[LANGFUSE] Callbacks list length: {len(callbacks)}")
+            except Exception as e:
+                print(f"[LANGFUSE] ERROR - Failed to create CallbackHandler: {e}")
+        else:
+            print("[LANGFUSE] Skipping callback setup - Langfuse not initialized")
+
+        try:
+            # Create proper LangChain prompt template with metadata for linking
+            if langfuse_prompt:
+                # Use LangChain ChatPromptTemplate with proper metadata for prompt linking
+                messages = [("human", prompt_template)]
+                langchain_prompt = ChatPromptTemplate.from_messages(messages)
+                langchain_prompt.metadata = {"langfuse_prompt": langfuse_prompt}
+
+                print(f"[LANGFUSE] Created ChatPromptTemplate with prompt linking: {langfuse_prompt.name} v{langfuse_prompt.version}")
+
+                # Create a chain for proper tracing
+                chain = langchain_prompt | self.llm
+                response_obj = await chain.ainvoke(
+                    {},  # No input variables needed as prompt is already compiled
+                    config={"callbacks": callbacks}
+                )
+                answer_text = response_obj.content
+                print(f"[LANGFUSE] LLM generation completed with prompt linking")
+            else:
+                # Fallback: direct LLM call without prompt linking
+                print(f"[LANGFUSE] Using direct LLM call (no prompt linking)")
+                response = await self.llm.agenerate(
+                    [[HumanMessage(content=prompt_template)]],
+                    callbacks=callbacks
+                )
+                answer_text = response.generations[0][0].text
+                print(f"[LANGFUSE] LLM generation completed without prompt linking")
 
             # Log trace information if available
             if langfuse_handler and hasattr(langfuse_handler, 'get_trace_id'):
@@ -352,6 +375,8 @@ class SupabaseLangChainRAGPipeline:
                     pass
         except Exception as e:
             print(f"Error in LLM generation: {e}")
+            import traceback
+            print(f"Full error traceback: {traceback.format_exc()}")
             answer_text = "抱歉，生成回答時發生錯誤。"
         
         # 4. Extract bullets and citations
