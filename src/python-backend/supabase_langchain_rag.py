@@ -294,13 +294,31 @@ class SupabaseLangChainRAGPipeline:
             audience_instruction = " 回答面向偏技術（engineering）。"
         elif audience == "hr":
             audience_instruction = " 回答面向偏人資（HR）。"
-        
+
         context_text = "\n\n".join(
-            f"[{doc.metadata['section']}#{doc.metadata['idx']}] {doc.page_content}" 
+            f"[{doc.metadata['section']}#{doc.metadata['idx']}] {doc.page_content}"
             for doc in relevant_docs
         )
-        
-        prompt_template = f"""你是一個根據履歷內容回答問題的助理，以清晰、準確、可驗證為原則回答。{audience_instruction}
+
+        # Get prompt from Langfuse with fallback to hardcoded version
+        prompt_content = None
+        if self.langfuse:
+            try:
+                print(f"[LANGFUSE] Attempting to load prompt 'resume_formation_query' from Langfuse")
+                prompt = self.langfuse.get_prompt("resume_formation_query", label="production")
+                prompt_content = prompt.compile(
+                    audience_instruction=audience_instruction,
+                    context_text=context_text,
+                    question=question
+                )
+                print(f"[LANGFUSE] Successfully loaded prompt from Langfuse: {prompt.name} v{prompt.version}")
+            except Exception as e:
+                print(f"[LANGFUSE] Failed to load prompt from Langfuse: {e}")
+                print(f"[LANGFUSE] Falling back to hardcoded prompt")
+
+        # Fallback to hardcoded prompt if Langfuse not available or failed
+        if not prompt_content:
+            prompt_content = f"""你是一個根據履歷內容回答問題的助理，以清晰、準確、可驗證為原則回答。{audience_instruction}
 
 以下是履歷的相關片段：
 {context_text}
@@ -308,6 +326,9 @@ class SupabaseLangChainRAGPipeline:
 問題：{question}
 
 請先以 1-3 句整體回答，再以條列方式補充重點。"""
+            print("[LANGFUSE] Using fallback hardcoded prompt")
+
+        prompt_template = prompt_content
         
         # 3. Generate response using LLM
         print(f"[LANGFUSE] Starting LLM generation with {len(callbacks)} callbacks")
