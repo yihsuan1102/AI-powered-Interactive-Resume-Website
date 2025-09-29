@@ -212,15 +212,30 @@ class SupabaseLangChainRAGPipeline:
         
         # Initialize Langfuse
         self.langfuse = None
-        if all([
-            os.environ.get("LANGFUSE_PUBLIC_KEY"),
-            os.environ.get("LANGFUSE_SECRET_KEY")
-        ]):
-            self.langfuse = Langfuse(
-                public_key=os.environ.get("LANGFUSE_PUBLIC_KEY"),
-                secret_key=os.environ.get("LANGFUSE_SECRET_KEY"),
-                host=os.environ.get("LANGFUSE_HOST", "https://cloud.langfuse.com")
-            )
+        langfuse_public_key = os.environ.get("LANGFUSE_PUBLIC_KEY")
+        langfuse_secret_key = os.environ.get("LANGFUSE_SECRET_KEY")
+        langfuse_host = os.environ.get("LANGFUSE_HOST", "https://cloud.langfuse.com")
+
+        print(f"[LANGFUSE] Initialization check:")
+        print(f"[LANGFUSE]   - LANGFUSE_PUBLIC_KEY: {'SET' if langfuse_public_key else 'MISSING'}")
+        print(f"[LANGFUSE]   - LANGFUSE_SECRET_KEY: {'SET' if langfuse_secret_key else 'MISSING'}")
+        print(f"[LANGFUSE]   - LANGFUSE_HOST: {langfuse_host}")
+
+        if all([langfuse_public_key, langfuse_secret_key]):
+            try:
+                self.langfuse = Langfuse(
+                    public_key=langfuse_public_key,
+                    secret_key=langfuse_secret_key,
+                    host=langfuse_host
+                )
+                # Test connection
+                auth_result = self.langfuse.auth_check()
+                print(f"[LANGFUSE] Initialized successfully! Auth check: {auth_result}")
+            except Exception as e:
+                print(f"[LANGFUSE] ERROR - Initialization failed: {e}")
+                self.langfuse = None
+        else:
+            print("[LANGFUSE] WARNING - Not initialized, missing environment variables")
     
     async def query(
         self,
@@ -235,9 +250,21 @@ class SupabaseLangChainRAGPipeline:
         
         # Set up callbacks for Langfuse tracking
         callbacks = []
+        langfuse_handler = None
+
+        print(f"[LANGFUSE] Query start - question: '{question[:50]}...'")
+        print(f"[LANGFUSE] Langfuse client status: {'ACTIVE' if self.langfuse else 'INACTIVE'}")
+
         if self.langfuse:
-            langfuse_handler = LangfuseCallbackHandler()
-            callbacks.append(langfuse_handler)
+            try:
+                langfuse_handler = LangfuseCallbackHandler()
+                callbacks.append(langfuse_handler)
+                print(f"[LANGFUSE] CallbackHandler created successfully")
+                print(f"[LANGFUSE] Callbacks list length: {len(callbacks)}")
+            except Exception as e:
+                print(f"[LANGFUSE] ERROR - Failed to create CallbackHandler: {e}")
+        else:
+            print("[LANGFUSE] Skipping callback setup - Langfuse not initialized")
         
         # 1. Retrieve relevant documents
         print(f"Retrieving documents: top_k={top_k}, threshold={match_threshold}")
@@ -283,14 +310,25 @@ class SupabaseLangChainRAGPipeline:
 請先以 1-3 句整體回答，再以條列方式補充重點。"""
         
         # 3. Generate response using LLM
+        print(f"[LANGFUSE] Starting LLM generation with {len(callbacks)} callbacks")
         try:
             from langchain.schema import HumanMessage
-            
+
+            print(f"[LANGFUSE] Calling LLM.agenerate() with callbacks: {[type(cb).__name__ for cb in callbacks]}")
             response = await self.llm.agenerate(
                 [[HumanMessage(content=prompt_template)]],
                 callbacks=callbacks
             )
             answer_text = response.generations[0][0].text
+            print(f"[LANGFUSE] LLM generation completed successfully")
+
+            # Log trace information if available
+            if langfuse_handler and hasattr(langfuse_handler, 'get_trace_id'):
+                try:
+                    trace_id = langfuse_handler.get_trace_id()
+                    print(f"[LANGFUSE] Trace ID: {trace_id}")
+                except:
+                    pass
         except Exception as e:
             print(f"Error in LLM generation: {e}")
             answer_text = "抱歉，生成回答時發生錯誤。"
@@ -333,6 +371,18 @@ class SupabaseLangChainRAGPipeline:
                 for doc in relevant_docs
             ]
         
+        # Final logging
+        print(f"[LANGFUSE] Query completed successfully")
+        print(f"[LANGFUSE] Response length: {len(answer_text)} characters")
+
+        # Attempt to flush any pending Langfuse data
+        if self.langfuse:
+            try:
+                self.langfuse.flush()
+                print(f"[LANGFUSE] Flushed pending trace data")
+            except Exception as e:
+                print(f"[LANGFUSE] Warning - Failed to flush: {e}")
+
         return response_data
 
 

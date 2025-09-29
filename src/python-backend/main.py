@@ -76,16 +76,16 @@ async def post_rag_query(
     request: Request,
     x_api_key: Optional[str] = Header(default=None, convert_underscores=False),
 ):
-    print(f"Received RAG query: question='{payload.question}', top_k={payload.top_k}")
-    
+    print(f"[API] Received RAG query: question='{payload.question}', top_k={payload.top_k}")
+
     # Optional API key gate
     expected_api_key = os.environ.get("RAG_API_KEY")
     if expected_api_key and x_api_key != expected_api_key:
-        print("API key validation failed")
+        print("[API] API key validation failed")
         raise HTTPException(status_code=401, detail="Invalid or missing API key")
 
     try:
-        print("Calling RAG pipeline...")
+        print("[API] Calling RAG pipeline...")
         result = await rag_pipeline(
             question=payload.question.strip(),
             audience=payload.audience,
@@ -97,8 +97,8 @@ async def post_rag_query(
         
         # Log result summary (without full content to avoid log spam)
         answer_preview = result.get("answer", "")[:100] + "..." if result.get("answer") else "No answer"
-        print(f"RAG pipeline success: answer='{answer_preview}', citations={len(result.get('citations', []))}")
-        
+        print(f"[API] RAG pipeline success: answer='{answer_preview}', citations={len(result.get('citations', []))}")
+
         return result
     except RateLimitError as e:
         print(f"OpenAI rate limit error: {e}")
